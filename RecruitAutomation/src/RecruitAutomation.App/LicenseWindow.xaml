@@ -24,6 +24,7 @@
             <TextBlock Text="🔒 软件授权" 
                        FontSize="24" 
                        FontWeight="Bold" 
+                       Foreground="#333"
                        HorizontalAlignment="Center"/>
             <TextBlock Text="招聘自动化系统" 
                        FontSize="14" 
@@ -57,7 +58,8 @@
         </Border>
 
         <!-- 机器码 -->
-        <GroupBox Grid.Row="2" Header="您的机器码（发送给管理员获取授权码）" Padding="10" Margin="0,0,0,12">
+        <GroupBox Grid.Row="2" Header="您的机器码（发送给管理员获取授权码）" Padding="10" Margin="0,0,0,12"
+                  Foreground="#333" FontWeight="SemiBold">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -69,20 +71,30 @@
                          IsReadOnly="True"
                          FontFamily="Consolas"
                          FontSize="14"
+                         FontWeight="Normal"
                          Padding="10"
                          Background="#FAFAFA"
+                         Foreground="#333"
                          VerticalContentAlignment="Center"/>
                 
+                <!-- 【修复】复制按钮样式 - 使用醒目的蓝色背景和白色文字 -->
                 <Button Grid.Column="1" 
-                        Content="复制" 
+                        Content="📋 复制机器码" 
                         Margin="10,0,0,0"
-                        Padding="20,10"
+                        Padding="15,10"
+                        Background="#2196F3"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        FontSize="13"
+                        BorderThickness="0"
+                        Cursor="Hand"
                         Click="BtnCopyMachineCode_Click"/>
             </Grid>
         </GroupBox>
 
         <!-- 授权码输入 -->
-        <GroupBox Grid.Row="3" Header="粘贴授权码" Padding="10" Margin="0,0,0,12">
+        <GroupBox Grid.Row="3" Header="粘贴授权码" Padding="10" Margin="0,0,0,12"
+                  Foreground="#333" FontWeight="SemiBold">
             <TextBox x:Name="txtLicenseCode" 
                      Height="100"
                      AcceptsReturn="True"
@@ -90,20 +102,27 @@
                      VerticalScrollBarVisibility="Auto"
                      FontFamily="Consolas"
                      FontSize="11"
+                     FontWeight="Normal"
                      Padding="10"
                      Background="White"
+                     Foreground="#333"
+                     BorderBrush="#CCC"
+                     BorderThickness="1"
                      VerticalContentAlignment="Top"/>
         </GroupBox>
 
         <!-- License 信息 -->
         <GroupBox Grid.Row="4" Header="授权信息" Padding="10" Margin="0,0,0,10"
-                  x:Name="grpLicenseInfo" Visibility="Collapsed">
+                  x:Name="grpLicenseInfo" Visibility="Collapsed"
+                  Foreground="#333" FontWeight="SemiBold">
             <TextBox x:Name="txtLicenseInfo"
                      IsReadOnly="True"
                      TextWrapping="Wrap"
                      FontSize="11"
+                     FontWeight="Normal"
                      Padding="8"
                      Background="#FAFAFA"
+                     Foreground="#333"
                      Height="60"
                      VerticalScrollBarVisibility="Auto"/>
         </GroupBox>
@@ -111,15 +130,16 @@
         <!-- 占位 -->
         <Grid Grid.Row="5"/>
 
-        <!-- 操作按钮 -->
+        <!-- 操作按钮 - 【修复】使用醒目的绿色背景 -->
         <Button Grid.Row="6" 
-                Content="激活授权" 
+                Content="✅ 激活授权" 
                 Padding="15,14"
                 Background="#4CAF50"
                 Foreground="White"
                 BorderThickness="0"
                 FontWeight="Bold"
                 FontSize="15"
+                Cursor="Hand"
                 Click="BtnActivate_Click"/>
     </Grid>
 </Window>

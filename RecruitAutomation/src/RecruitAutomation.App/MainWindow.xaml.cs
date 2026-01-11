@@ -343,7 +343,7 @@ namespace RecruitAutomation.App
                 _currentPanel = panelName;
 
                 // 更新导航按钮样式
-                var navButtons = new[] { btnDashboard, btnAccounts, btnJobs, btnCandidates, btnMessages,
+                var navButtons = new[] { btnDashboard, btnAccounts, btnBrowser, btnJobs, btnCandidates, btnMessages,
                                          btnAutoGreet, btnAutoReply, btnBatchSend, btnActivity, btnFilter, btnAI, btnSettings };
                 
                 foreach (var btn in navButtons)
@@ -355,6 +355,7 @@ namespace RecruitAutomation.App
                 {
                     "Dashboard" => btnDashboard,
                     "Accounts" => btnAccounts,
+                    "Browser" => btnBrowser,
                     "Jobs" => btnJobs,
                     "Candidates" => btnCandidates,
                     "Messages" => btnMessages,
@@ -374,6 +375,7 @@ namespace RecruitAutomation.App
                 {
                     "Dashboard" => ("数据概览", "查看招聘数据统计和今日工作概况"),
                     "Accounts" => ("账号管理", "管理招聘平台账号，支持多账号同时运行"),
+                    "Browser" => ("浏览器管理", "管理浏览器实例，启动/停止/重启浏览器"),
                     "Jobs" => ("岗位管理", "发布、更新、刷新招聘岗位"),
                     "Candidates" => ("候选人库", "查看采集的候选人信息和筛选结果"),
                     "Messages" => ("消息中心", "查看和管理与候选人的沟通记录"),
@@ -392,6 +394,7 @@ namespace RecruitAutomation.App
                 // 切换面板显示
                 if (panelDashboard != null) panelDashboard.Visibility = panelName == "Dashboard" ? Visibility.Visible : Visibility.Collapsed;
                 if (panelAccounts != null) panelAccounts.Visibility = panelName == "Accounts" ? Visibility.Visible : Visibility.Collapsed;
+                if (panelBrowser != null) panelBrowser.Visibility = panelName == "Browser" ? Visibility.Visible : Visibility.Collapsed;
                 if (panelJobs != null) panelJobs.Visibility = panelName == "Jobs" ? Visibility.Visible : Visibility.Collapsed;
                 if (panelCandidates != null) panelCandidates.Visibility = panelName == "Candidates" ? Visibility.Visible : Visibility.Collapsed;
                 if (panelMessages != null) panelMessages.Visibility = panelName == "Messages" ? Visibility.Visible : Visibility.Collapsed;
@@ -402,6 +405,17 @@ namespace RecruitAutomation.App
                 if (panelAI != null) panelAI.Visibility = panelName == "AI" ? Visibility.Visible : Visibility.Collapsed;
                 if (panelBatchSend != null) panelBatchSend.Visibility = panelName == "BatchSend" ? Visibility.Visible : Visibility.Collapsed;
                 if (panelSettings != null) panelSettings.Visibility = panelName == "Settings" ? Visibility.Visible : Visibility.Collapsed;
+                
+                // 切换到浏览器管理时刷新列表
+                if (panelName == "Browser")
+                {
+                    _ = SafeRefreshBrowserListAsync();
+                }
+                // 切换到账号管理时更新统计
+                if (panelName == "Accounts")
+                {
+                    UpdateAccountStats();
+                }
             }
             catch (Exception ex)
             {
@@ -1081,6 +1095,303 @@ namespace RecruitAutomation.App
 
         #endregion
 
+        #region 浏览器管理
+
+        private readonly ObservableCollection<BrowserInstanceItem> _browserInstances = new();
+
+        private void UpdateAccountStats()
+        {
+            try
+            {
+                var total = Accounts.Count;
+                var online = Accounts.Count(a => a.Status == "在线");
+                var offline = Accounts.Count(a => a.Status == "离线" || a.Status == "已停用");
+                
+                if (txtAccountCount != null) txtAccountCount.Text = total.ToString();
+                if (txtOnlineCount != null) txtOnlineCount.Text = online.ToString();
+                if (txtOfflineCount != null) txtOfflineCount.Text = offline.ToString();
+            }
+            catch { }
+        }
+
+        private async Task SafeRefreshBrowserListAsync()
+        {
+            try
+            {
+                if (!EnsureBrowserServicesInitialized())
+                {
+                    AddLog("浏览器服务初始化失败");
+                    return;
+                }
+                
+                if (_browserHelper == null || !_browserHelper.IsInitialized)
+                {
+                    AddLog("浏览器服务未初始化");
+                    return;
+                }
+                
+                var accounts = await _browserHelper.GetAvailableAccountsAsync();
+                
+                _browserInstances.Clear();
+                foreach (var a in accounts)
+                {
+                    var uiAccount = Accounts.FirstOrDefault(x => x.Id == a.AccountId);
+                    var displayName = uiAccount?.Name ?? a.AccountId;
+                    
+                    _browserInstances.Add(new BrowserInstanceItem
+                    {
+                        AccountId = a.AccountId,
+                        DisplayName = displayName,
+                        Platform = a.Platform,
+                        PlatformName = a.Platform.ToString(),
+                        IsStarted = a.IsStarted,
+                        LoginStatus = a.LoginStatus
+                    });
+                }
+                
+                if (dgBrowserInstances != null)
+                {
+                    dgBrowserInstances.ItemsSource = _browserInstances;
+                }
+                
+                UpdateBrowserStats();
+                AddLog($"浏览器列表刷新完成：{_browserInstances.Count} 个实例");
+            }
+            catch (Exception ex)
+            {
+                App.WriteRuntimeLog($"SafeRefreshBrowserListAsync 异常: {ex}");
+                AddLog($"刷新浏览器列表失败: {ex.Message}");
+            }
+        }
+
+        private void UpdateBrowserStats()
+        {
+            try
+            {
+                var total = _browserInstances.Count;
+                var running = _browserInstances.Count(b => b.IsStarted);
+                
+                if (txtBrowserCount != null) txtBrowserCount.Text = total.ToString();
+                if (txtBrowserRunning != null) txtBrowserRunning.Text = running.ToString();
+            }
+            catch { }
+        }
+
+        private async void BtnRefreshBrowserStatus_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await SafeRefreshBrowserListAsync();
+            }
+            catch (Exception ex)
+            {
+                App.WriteRuntimeLog($"BtnRefreshBrowserStatus_Click 异常: {ex}");
+                AddLog($"刷新浏览器状态失败: {ex.Message}");
+            }
+        }
+
+        private async void BtnStartAllBrowsers_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!EnsureBrowserServicesInitialized())
+                {
+                    MessageBox.Show("浏览器服务初始化失败", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                
+                AddLog("正在启动所有浏览器实例...");
+                
+                foreach (var instance in _browserInstances.Where(b => !b.IsStarted))
+                {
+                    try
+                    {
+                        await _browserHelper!.StartBrowserInstanceAsync(instance.AccountId, instance.Platform);
+                        instance.IsStarted = true;
+                        AddLog($"浏览器实例 [{instance.DisplayName}] 已启动");
+                    }
+                    catch (Exception ex)
+                    {
+                        AddLog($"启动 [{instance.DisplayName}] 失败: {ex.Message}");
+                    }
+                }
+                
+                UpdateBrowserStats();
+                AddLog("全部浏览器启动完成");
+            }
+            catch (Exception ex)
+            {
+                App.WriteRuntimeLog($"BtnStartAllBrowsers_Click 异常: {ex}");
+                AddLog($"启动浏览器失败: {ex.Message}");
+            }
+        }
+
+        private async void BtnStopAllBrowsers_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_browserHelper == null || !_browserHelper.IsInitialized)
+                {
+                    AddLog("浏览器服务未初始化");
+                    return;
+                }
+                
+                AddLog("正在停止所有浏览器实例...");
+                
+                foreach (var instance in _browserInstances.Where(b => b.IsStarted))
+                {
+                    try
+                    {
+                        _browserHelper.CloseBrowserInstance(instance.AccountId);
+                        instance.IsStarted = false;
+                        AddLog($"浏览器实例 [{instance.DisplayName}] 已停止");
+                    }
+                    catch (Exception ex)
+                    {
+                        AddLog($"停止 [{instance.DisplayName}] 失败: {ex.Message}");
+                    }
+                }
+                
+                UpdateBrowserStats();
+                AddLog("全部浏览器已停止");
+            }
+            catch (Exception ex)
+            {
+                App.WriteRuntimeLog($"BtnStopAllBrowsers_Click 异常: {ex}");
+                AddLog($"停止浏览器失败: {ex.Message}");
+            }
+            
+            await Task.CompletedTask;
+        }
+
+        private async void BtnStartBrowser_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button btn && btn.Tag is BrowserInstanceItem instance)
+                {
+                    if (!EnsureBrowserServicesInitialized())
+                    {
+                        MessageBox.Show("浏览器服务初始化失败", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                    
+                    AddLog($"正在启动浏览器实例 [{instance.DisplayName}]...");
+                    await _browserHelper!.StartBrowserInstanceAsync(instance.AccountId, instance.Platform);
+                    instance.IsStarted = true;
+                    UpdateBrowserStats();
+                    AddLog($"浏览器实例 [{instance.DisplayName}] 已启动");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.WriteRuntimeLog($"BtnStartBrowser_Click 异常: {ex}");
+                AddLog($"启动浏览器失败: {ex.Message}");
+            }
+        }
+
+        private async void BtnStopBrowser_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button btn && btn.Tag is BrowserInstanceItem instance)
+                {
+                    if (_browserHelper == null || !_browserHelper.IsInitialized)
+                    {
+                        AddLog("浏览器服务未初始化");
+                        return;
+                    }
+                    
+                    AddLog($"正在停止浏览器实例 [{instance.DisplayName}]...");
+                    _browserHelper.CloseBrowserInstance(instance.AccountId);
+                    instance.IsStarted = false;
+                    UpdateBrowserStats();
+                    AddLog($"浏览器实例 [{instance.DisplayName}] 已停止");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.WriteRuntimeLog($"BtnStopBrowser_Click 异常: {ex}");
+                AddLog($"停止浏览器失败: {ex.Message}");
+            }
+            
+            await Task.CompletedTask;
+        }
+
+        private async void BtnRestartBrowser_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button btn && btn.Tag is BrowserInstanceItem instance)
+                {
+                    if (!EnsureBrowserServicesInitialized())
+                    {
+                        MessageBox.Show("浏览器服务初始化失败", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                    
+                    AddLog($"正在重启浏览器实例 [{instance.DisplayName}]...");
+                    
+                    // 先停止
+                    _browserHelper!.CloseBrowserInstance(instance.AccountId);
+                    instance.IsStarted = false;
+                    
+                    // 等待一下
+                    await Task.Delay(500);
+                    
+                    // 再启动
+                    await _browserHelper.StartBrowserInstanceAsync(instance.AccountId, instance.Platform);
+                    instance.IsStarted = true;
+                    
+                    UpdateBrowserStats();
+                    AddLog($"浏览器实例 [{instance.DisplayName}] 已重启");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.WriteRuntimeLog($"BtnRestartBrowser_Click 异常: {ex}");
+                AddLog($"重启浏览器失败: {ex.Message}");
+            }
+        }
+
+        private async void BtnLoginBrowser_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is Button btn && btn.Tag is BrowserInstanceItem instance)
+                {
+                    if (!EnsureBrowserServicesInitialized())
+                    {
+                        MessageBox.Show("浏览器服务初始化失败", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                    
+                    var loginWindow = new BrowserLoginWindow(instance.AccountId, instance.PlatformName);
+                    loginWindow.Owner = this;
+                    
+                    if (loginWindow.ShowDialog() == true && loginWindow.LoginResult != null)
+                    {
+                        var result = loginWindow.LoginResult;
+                        if (result.IsLoggedIn)
+                        {
+                            instance.LoginStatus = AccountLoginStatus.LoggedIn;
+                            _browserHelper!.MarkAccountAsLoggedIn(instance.AccountId, instance.Platform);
+                            AddLog($"账号 [{instance.DisplayName}] 登录成功");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.WriteRuntimeLog($"BtnLoginBrowser_Click 异常: {ex}");
+                AddLog($"登录失败: {ex.Message}");
+            }
+            
+            await Task.CompletedTask;
+        }
+
+        #endregion
+
         #region 其他面板事件处理
 
         private void ChkAutoGreetEnabled_Changed(object sender, RoutedEventArgs e) { }
@@ -1275,6 +1586,83 @@ namespace RecruitAutomation.App
         };
 
         public string FetchedAtText => _job.FetchedAt.ToLocalTime().ToString("MM-dd HH:mm");
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+    public class BrowserInstanceItem : INotifyPropertyChanged
+    {
+        private bool _isStarted;
+        private AccountLoginStatus _loginStatus;
+
+        public string AccountId { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public RecruitPlatform Platform { get; set; }
+        public string PlatformName { get; set; } = string.Empty;
+
+        public bool IsStarted
+        {
+            get => _isStarted;
+            set { _isStarted = value; OnPropertyChanged(); UpdateVisualProperties(); }
+        }
+
+        public AccountLoginStatus LoginStatus
+        {
+            get => _loginStatus;
+            set { _loginStatus = value; OnPropertyChanged(); UpdateVisualProperties(); }
+        }
+
+        // 浏览器状态显示
+        public string BrowserStatusText => IsStarted ? "运行中" : "已停止";
+        public string BrowserStatusBackground => IsStarted ? "#E8F5E9" : "#FFEBEE";
+        public string BrowserStatusForeground => IsStarted ? "#27AE60" : "#E74C3C";
+
+        // 登录状态显示
+        public string LoginStatusText => LoginStatus switch
+        {
+            AccountLoginStatus.LoggedIn => "已登录",
+            AccountLoginStatus.NotLoggedIn => "未登录",
+            AccountLoginStatus.Expired => "已过期",
+            _ => "未知"
+        };
+        public string LoginStatusBackground => LoginStatus switch
+        {
+            AccountLoginStatus.LoggedIn => "#E8F5E9",
+            AccountLoginStatus.NotLoggedIn => "#FFF3E0",
+            AccountLoginStatus.Expired => "#FFEBEE",
+            _ => "#F5F5F5"
+        };
+        public string LoginStatusForeground => LoginStatus switch
+        {
+            AccountLoginStatus.LoggedIn => "#27AE60",
+            AccountLoginStatus.NotLoggedIn => "#F57C00",
+            AccountLoginStatus.Expired => "#E74C3C",
+            _ => "#999"
+        };
+
+        // 按钮可见性
+        public Visibility StartButtonVisibility => !IsStarted ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility StopButtonVisibility => IsStarted ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility RestartButtonVisibility => IsStarted ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility LoginButtonVisibility => IsStarted && LoginStatus != AccountLoginStatus.LoggedIn ? Visibility.Visible : Visibility.Collapsed;
+
+        private void UpdateVisualProperties()
+        {
+            OnPropertyChanged(nameof(BrowserStatusText));
+            OnPropertyChanged(nameof(BrowserStatusBackground));
+            OnPropertyChanged(nameof(BrowserStatusForeground));
+            OnPropertyChanged(nameof(LoginStatusText));
+            OnPropertyChanged(nameof(LoginStatusBackground));
+            OnPropertyChanged(nameof(LoginStatusForeground));
+            OnPropertyChanged(nameof(StartButtonVisibility));
+            OnPropertyChanged(nameof(StopButtonVisibility));
+            OnPropertyChanged(nameof(RestartButtonVisibility));
+            OnPropertyChanged(nameof(LoginButtonVisibility));
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null)

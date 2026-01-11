@@ -79,7 +79,8 @@
                     <StackPanel Margin="0,10">
                         <TextBlock Text="工作台" Foreground="#FFFFFF66" FontSize="11" Margin="15,5,0,5"/>
                         <Button x:Name="btnDashboard" Content="📊 数据概览" Style="{StaticResource NavButtonActive}" Click="NavButton_Click" Tag="Dashboard"/>
-                        <Button x:Name="btnAccounts" Content="👤 账号管理" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Accounts" Visibility="Collapsed"/>
+                        <Button x:Name="btnAccounts" Content="👤 账号管理" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Accounts"/>
+                        <Button x:Name="btnBrowser" Content="🌐 浏览器管理" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Browser"/>
                         
                         <TextBlock Text="招聘功能" Foreground="#FFFFFF66" FontSize="11" Margin="15,15,0,5"/>
                         <Button x:Name="btnJobs" Content="📝 岗位管理" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Jobs"/>
@@ -265,8 +266,210 @@
                     </Grid>
                 </Grid>
 
-                <!-- 其他面板（默认隐藏） -->
-                <Grid x:Name="panelAccounts" Visibility="Collapsed"/>
+                <!-- 账号管理面板 -->
+                <Grid x:Name="panelAccounts" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- 顶部工具栏 -->
+                    <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="账号总数：" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="txtAccountCount" Text="0" VerticalAlignment="Center" Foreground="#3498DB" FontWeight="Bold" FontSize="16"/>
+                                <TextBlock Text=" | 在线：" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                                <TextBlock x:Name="txtOnlineCount" Text="0" VerticalAlignment="Center" Foreground="#27AE60" FontWeight="Bold"/>
+                                <TextBlock Text=" | 离线：" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                                <TextBlock x:Name="txtOfflineCount" Text="0" VerticalAlignment="Center" Foreground="#E74C3C" FontWeight="Bold"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="+ 添加账号" Padding="15,8" Background="#3498DB" 
+                                    Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnAddAccount_Click"/>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- 账号列表 -->
+                    <Border Grid.Row="1" Background="White" CornerRadius="8">
+                        <DataGrid x:Name="dgAccountList" Margin="1"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Single" SelectionUnit="FullRow"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                                  Background="White" BorderThickness="0" RowHeight="50"
+                                  ItemsSource="{Binding Accounts, RelativeSource={RelativeSource AncestorType=Window}}">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="头像" Width="60">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Ellipse Width="36" Height="36" Fill="{Binding AvatarColor}" HorizontalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="账号名称" Binding="{Binding Name}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="平台" Binding="{Binding Platform}" Width="100"/>
+                                <DataGridTemplateColumn Header="状态" Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding StatusBackground}" CornerRadius="3" Padding="8,3" HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding Status}" Foreground="{Binding StatusForeground}" FontSize="12"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="操作" Width="200">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Button Content="上线" Width="50" Padding="5,3" Margin="0,0,5,0"
+                                                        Background="#27AE60" Foreground="White" BorderThickness="0" 
+                                                        FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                        Visibility="{Binding OnlineButtonVisibility}"
+                                                        Click="BtnOnlineAccount_Click"/>
+                                                <Button Content="停用" Width="50" Padding="5,3" Margin="0,0,5,0"
+                                                        Background="#F39C12" Foreground="White" BorderThickness="0" 
+                                                        FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                        Visibility="{Binding ToggleButtonVisibility}"
+                                                        Click="BtnToggleAccount_Click"/>
+                                                <Button Content="删除" Width="50" Padding="5,3" 
+                                                        Background="#E74C3C" Foreground="White" BorderThickness="0" 
+                                                        FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                        Click="BtnDeleteAccount_Click"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="{Binding RowBackground}"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#E3F2FD"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F5F5F5"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+
+                <!-- 浏览器管理面板 -->
+                <Grid x:Name="panelBrowser" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- 顶部工具栏 -->
+                    <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="浏览器实例：" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="txtBrowserCount" Text="0" VerticalAlignment="Center" Foreground="#3498DB" FontWeight="Bold" FontSize="16"/>
+                                <TextBlock Text=" | 运行中：" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                                <TextBlock x:Name="txtBrowserRunning" Text="0" VerticalAlignment="Center" Foreground="#27AE60" FontWeight="Bold"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="🔄 刷新状态" Padding="12,8" Background="#9B59B6" 
+                                        Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"
+                                        Click="BtnRefreshBrowserStatus_Click"/>
+                                <Button Content="▶ 全部启动" Padding="12,8" Background="#27AE60" 
+                                        Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"
+                                        Click="BtnStartAllBrowsers_Click"/>
+                                <Button Content="⏹ 全部停止" Padding="12,8" Background="#E74C3C" 
+                                        Foreground="White" BorderThickness="0" Cursor="Hand"
+                                        Click="BtnStopAllBrowsers_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- 浏览器实例列表 -->
+                    <Border Grid.Row="1" Background="White" CornerRadius="8">
+                        <DataGrid x:Name="dgBrowserInstances" Margin="1"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Single" SelectionUnit="FullRow"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                                  Background="White" BorderThickness="0" RowHeight="50">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="账号ID" Binding="{Binding AccountId}" Width="150"/>
+                                <DataGridTextColumn Header="账号名称" Binding="{Binding DisplayName}" Width="*" MinWidth="120"/>
+                                <DataGridTextColumn Header="平台" Binding="{Binding PlatformName}" Width="100"/>
+                                <DataGridTemplateColumn Header="浏览器状态" Width="100">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding BrowserStatusBackground}" CornerRadius="3" Padding="8,3" HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding BrowserStatusText}" Foreground="{Binding BrowserStatusForeground}" FontSize="12"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="登录状态" Width="100">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding LoginStatusBackground}" CornerRadius="3" Padding="8,3" HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding LoginStatusText}" Foreground="{Binding LoginStatusForeground}" FontSize="12"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="操作" Width="220">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Button Content="启动" Width="50" Padding="5,3" Margin="0,0,5,0"
+                                                        Background="#27AE60" Foreground="White" BorderThickness="0" 
+                                                        FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                        Visibility="{Binding StartButtonVisibility}"
+                                                        Click="BtnStartBrowser_Click"/>
+                                                <Button Content="停止" Width="50" Padding="5,3" Margin="0,0,5,0"
+                                                        Background="#E74C3C" Foreground="White" BorderThickness="0" 
+                                                        FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                        Visibility="{Binding StopButtonVisibility}"
+                                                        Click="BtnStopBrowser_Click"/>
+                                                <Button Content="重启" Width="50" Padding="5,3" Margin="0,0,5,0"
+                                                        Background="#F39C12" Foreground="White" BorderThickness="0" 
+                                                        FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                        Visibility="{Binding RestartButtonVisibility}"
+                                                        Click="BtnRestartBrowser_Click"/>
+                                                <Button Content="登录" Width="50" Padding="5,3"
+                                                        Background="#3498DB" Foreground="White" BorderThickness="0" 
+                                                        FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                        Visibility="{Binding LoginButtonVisibility}"
+                                                        Click="BtnLoginBrowser_Click"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#E3F2FD"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F5F5F5"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                    </Border>
+                </Grid>
 
                 <!-- 岗位管理面板 -->
                 <Grid x:Name="panelJobs" Visibility="Collapsed">

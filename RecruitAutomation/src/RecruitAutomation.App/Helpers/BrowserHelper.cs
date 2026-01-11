@@ -212,6 +212,50 @@ namespace RecruitAutomation.App.Helpers
                 WriteLog($"CloseBrowserInstance 异常: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// 启动浏览器实例
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public Task<bool> StartBrowserInstanceAsync(string accountId, RecruitPlatform platform)
+        {
+            try
+            {
+                var startUrl = platform switch
+                {
+                    RecruitPlatform.Boss => "https://www.zhipin.com/web/geek/job",
+                    RecruitPlatform.Zhilian => "https://www.zhaopin.com/",
+                    RecruitPlatform.Job51 => "https://www.51job.com/",
+                    RecruitPlatform.Liepin => "https://www.liepin.com/",
+                    _ => "about:blank"
+                };
+                
+                var instance = Browser.BrowserInstanceManager.Instance.GetOrCreate(accountId, startUrl);
+                return Task.FromResult(instance != null);
+            }
+            catch (Exception ex)
+            {
+                WriteLog($"StartBrowserInstanceAsync 异常: {ex.Message}");
+                return Task.FromResult(false);
+            }
+        }
+
+        /// <summary>
+        /// 检查浏览器实例是否运行中
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public bool IsBrowserRunning(string accountId)
+        {
+            try
+            {
+                return Browser.BrowserInstanceManager.Instance.IsRunning(accountId);
+            }
+            catch (Exception ex)
+            {
+                WriteLog($"IsBrowserRunning 异常: {ex.Message}");
+                return false;
+            }
+        }
         
         private void WriteLog(string message)
         {
