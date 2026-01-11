@@ -38,10 +38,10 @@ namespace RecruitAutomation.App
 
         private void ShowLicenseInfo(LicenseInfo license)
         {
-            txtLicenseInfo.Text = $"授权类型: {GetLicenseTypeName(license.LicenseType)} | " +
-                                 $"最大账号: {license.MaxAccounts} | " +
-                                 $"有效期至: {license.ExpiresAt:yyyy-MM-dd}";
-            grpLicenseInfo.Visibility = Visibility.Visible;
+            // 授权信息显示在状态区域
+            txtStatusMessage.Text = $"授权类型: {GetLicenseTypeName(license.LicenseType)} | " +
+                                   $"最大账号: {license.MaxAccounts} | " +
+                                   $"有效期至: {license.ExpiresAt:yyyy-MM-dd}";
         }
 
         private void UpdateStatusDisplay(LicenseValidationResult result)

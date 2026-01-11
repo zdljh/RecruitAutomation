@@ -17,6 +17,10 @@ namespace RecruitAutomation.App.Helpers
         private static readonly Lazy<CefManager> _instance = new(() => new CefManager());
         public static CefManager Instance => _instance.Value;
         
+        private static readonly string LogDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "RecruitAutomation", "logs");
+        
         // 【关键】静态引用所有 Browser 实例，防止 GC 回收
         private readonly ConcurrentDictionary<string, ChromiumWebBrowser> _browsers = new();
         
@@ -39,25 +43,25 @@ namespace RecruitAutomation.App.Helpers
             {
                 if (!Cef.IsInitialized)
                 {
-                    App.WriteRuntimeLog($"[CefManager] CreateBrowser 失败: CefSharp 未初始化");
+                    WriteLog($"[CefManager] CreateBrowser 失败: CefSharp 未初始化");
                     return null;
                 }
                 
                 // 检查是否在 UI 线程
                 if (Application.Current?.Dispatcher != null && !Application.Current.Dispatcher.CheckAccess())
                 {
-                    App.WriteRuntimeLog($"[CefManager] CreateBrowser 警告: 不在 UI 线程");
+                    WriteLog($"[CefManager] CreateBrowser 警告: 不在 UI 线程");
                     return null;
                 }
                 
                 // 如果已存在，返回现有实例
                 if (_browsers.TryGetValue(id, out var existing))
                 {
-                    App.WriteRuntimeLog($"[CefManager] 返回已存在的 Browser: {id}");
+                    WriteLog($"[CefManager] 返回已存在的 Browser: {id}");
                     return existing;
                 }
                 
-                App.WriteRuntimeLog($"[CefManager] 创建新 Browser: {id}, URL: {initialUrl}");
+                WriteLog($"[CefManager] 创建新 Browser: {id}, URL: {initialUrl}");
                 
                 var browser = new ChromiumWebBrowser(initialUrl);
                 
@@ -66,7 +70,7 @@ namespace RecruitAutomation.App.Helpers
                 {
                     if (e.ErrorCode != CefErrorCode.Aborted)
                     {
-                        App.WriteRuntimeLog($"[CefManager] Browser {id} 加载错误: {e.ErrorCode} - {e.ErrorText}");
+                        WriteLog($"[CefManager] Browser {id} 加载错误: {e.ErrorCode} - {e.ErrorText}");
                     }
                 };
                 
@@ -74,7 +78,7 @@ namespace RecruitAutomation.App.Helpers
                 {
                     if (browser.IsBrowserInitialized)
                     {
-                        App.WriteRuntimeLog($"[CefManager] Browser {id} 初始化完成");
+                        WriteLog($"[CefManager] Browser {id} 初始化完成");
                     }
                 };
                 
@@ -85,7 +89,7 @@ namespace RecruitAutomation.App.Helpers
             }
             catch (Exception ex)
             {
-                App.WriteRuntimeLog($"[CefManager] CreateBrowser 异常: {ex}");
+                WriteLog($"[CefManager] CreateBrowser 异常: {ex}");
                 return null;
             }
         }
@@ -108,28 +112,31 @@ namespace RecruitAutomation.App.Helpers
             {
                 if (_browsers.TryRemove(id, out var browser))
                 {
-                    App.WriteRuntimeLog($"[CefManager] 关闭 Browser: {id}");
+                    WriteLog($"[CefManager] 关闭 Browser: {id}");
                     
                     // 在 UI 线程执行关闭
-                    SafeAsync.RunOnUI(() =>
+                    if (Application.Current?.Dispatcher != null)
                     {
-                        try
+                        Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                         {
-                            if (!browser.IsDisposed)
+                            try
                             {
-                                browser.Dispose();
+                                if (!browser.IsDisposed)
+                                {
+                                    browser.Dispose();
+                                }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            App.WriteRuntimeLog($"[CefManager] Dispose Browser {id} 异常: {ex.Message}");
-                        }
-                    }, $"CloseBrowser_{id}");
+                            catch (Exception ex)
+                            {
+                                WriteLog($"[CefManager] Dispose Browser {id} 异常: {ex.Message}");
+                            }
+                        }));
+                    }
                 }
             }
             catch (Exception ex)
             {
-                App.WriteRuntimeLog($"[CefManager] CloseBrowser 异常: {ex.Message}");
+                WriteLog($"[CefManager] CloseBrowser 异常: {ex.Message}");
             }
         }
         
@@ -140,7 +147,7 @@ namespace RecruitAutomation.App.Helpers
         {
             try
             {
-                App.WriteRuntimeLog($"[CefManager] 关闭所有 Browser，数量: {_browsers.Count}");
+                WriteLog($"[CefManager] 关闭所有 Browser，数量: {_browsers.Count}");
                 
                 foreach (var id in _browsers.Keys)
                 {
@@ -149,7 +156,7 @@ namespace RecruitAutomation.App.Helpers
             }
             catch (Exception ex)
             {
-                App.WriteRuntimeLog($"[CefManager] CloseAllBrowsers 异常: {ex.Message}");
+                WriteLog($"[CefManager] CloseAllBrowsers 异常: {ex.Message}");
             }
         }
         
@@ -157,5 +164,17 @@ namespace RecruitAutomation.App.Helpers
         /// 获取当前管理的浏览器数量
         /// </summary>
         public int BrowserCount => _browsers.Count;
+        
+        private static void WriteLog(string message)
+        {
+            try
+            {
+                if (!Directory.Exists(LogDir))
+                    Directory.CreateDirectory(LogDir);
+                var logFile = Path.Combine(LogDir, "cef_manager.log");
+                File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}\n");
+            }
+            catch { }
+        }
     }
 }

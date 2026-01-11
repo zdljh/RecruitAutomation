@@ -19,6 +19,9 @@ using RecruitAutomation.Browser.JobFetcher;
 using RecruitAutomation.Core.Models;
 using RecruitAutomation.Core.Services;
 
+// 使用别名避免类型冲突
+using AvailableAccountModel = RecruitAutomation.Core.Models.AvailableAccount;
+
 namespace RecruitAutomation.App.Controls
 {
     public partial class JobManagementPanel : UserControl
@@ -101,7 +104,7 @@ namespace RecruitAutomation.App.Controls
 
         private void BtnDebugOpenBrowser_Click(object sender, RoutedEventArgs e)
         {
-            var account = cmbAccounts.SelectedItem as AvailableAccount;
+            var account = cmbAccounts.SelectedItem as AvailableAccountModel;
             if (account == null) { MessageBox.Show("请先选择账号！", "提示"); return; }
             var inst = BrowserInstanceManager.Instance.Get(account.AccountId);
             if (inst?.Browser == null) { MessageBox.Show("浏览器实例不存在！", "错误"); return; }
@@ -114,7 +117,7 @@ namespace RecruitAutomation.App.Controls
         {
             try
             {
-                var account = cmbAccounts.SelectedItem as AvailableAccount;
+                var account = cmbAccounts.SelectedItem as AvailableAccountModel;
                 if (account == null) { MessageBox.Show("请先选择账号！", "提示"); return; }
                 var inst = BrowserInstanceManager.Instance.Get(account.AccountId);
                 if (inst?.Browser == null) { MessageBox.Show("浏览器实例不存在！", "错误"); return; }
@@ -135,7 +138,7 @@ namespace RecruitAutomation.App.Controls
         {
             try
             {
-                var account = cmbAccounts.SelectedItem as AvailableAccount;
+                var account = cmbAccounts.SelectedItem as AvailableAccountModel;
                 if (account == null) { MessageBox.Show("请先选择账号！", "提示"); return; }
                 var inst = BrowserInstanceManager.Instance.Get(account.AccountId);
                 if (inst?.Browser == null) { MessageBox.Show("浏览器实例不存在！", "错误"); return; }
@@ -202,7 +205,7 @@ namespace RecruitAutomation.App.Controls
         {
             try
             {
-                var account = cmbAccounts.SelectedItem as AvailableAccount;
+                var account = cmbAccounts.SelectedItem as AvailableAccountModel;
                 if (account == null) { MessageBox.Show("请先选择账号！", "提示"); return; }
                 var inst = BrowserInstanceManager.Instance.Get(account.AccountId);
                 if (inst?.Browser == null) { MessageBox.Show("浏览器实例不存在！", "错误"); return; }
@@ -438,13 +441,13 @@ namespace RecruitAutomation.App.Controls
         {
             try
             {
-                var accounts = new List<AvailableAccount>();
+                var accounts = new List<AvailableAccountModel>();
                 foreach (var accountId in BrowserInstanceManager.Instance.RunningAccountIds)
                 {
                     var inst = BrowserInstanceManager.Instance.Get(accountId);
                     if (inst != null)
                     {
-                        accounts.Add(new AvailableAccount
+                        accounts.Add(new AvailableAccountModel
                         {
                             AccountId = accountId,
                             Platform = RecruitPlatform.Boss,
@@ -472,7 +475,7 @@ namespace RecruitAutomation.App.Controls
 
         private void UpdateFetchButtonState()
         {
-            var account = cmbAccounts.SelectedItem as AvailableAccount;
+            var account = cmbAccounts.SelectedItem as AvailableAccountModel;
             btnFetchJobs.IsEnabled = account?.IsAvailable == true;
         }
 
@@ -510,7 +513,7 @@ namespace RecruitAutomation.App.Controls
             try
             {
                 _jobs.Clear();
-                var account = cmbAccounts.SelectedItem as AvailableAccount;
+                var account = cmbAccounts.SelectedItem as AvailableAccountModel;
 
                 List<JobPosition> jobList;
                 if (account != null)
@@ -668,7 +671,7 @@ namespace RecruitAutomation.App.Controls
         {
             try
             {
-                var account = cmbAccounts.SelectedItem as AvailableAccount;
+                var account = cmbAccounts.SelectedItem as AvailableAccountModel;
                 if (account == null)
                 {
                     MessageBox.Show("请先选择账号！", "提示");

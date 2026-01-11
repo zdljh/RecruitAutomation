@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using RecruitAutomation.Core.Models;
@@ -11,6 +12,8 @@ namespace RecruitAutomation.Browser.JobFetcher
     {
         private readonly BossJobPageReader _bossReader;
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _runningTasks = new();
+        private readonly ConcurrentDictionary<string, (RecruitPlatform Platform, bool LoggedIn)> _accountStates = new();
+        private CancellationTokenSource? _globalCts;
 
         public event EventHandler<JobFetchProgressEventArgs>? OnProgress;
         public event EventHandler<JobFetchResult>? OnCompleted;
@@ -23,6 +26,71 @@ namespace RecruitAutomation.Browser.JobFetcher
         public void ConfigureAI(string apiKey, string baseUrl = "", string model = "")
         {
             _bossReader.UpdateVisualAIConfig(apiKey, baseUrl, model);
+        }
+
+        /// <summary>
+        /// 标记账号为已登录
+        /// </summary>
+        public void MarkAccountAsLoggedIn(string accountId, RecruitPlatform platform)
+        {
+            _accountStates[accountId] = (platform, true);
+        }
+
+        /// <summary>
+        /// 获取可用账号列表
+        /// </summary>
+        public Task<List<AvailableAccount>> GetAvailableAccountsAsync()
+        {
+            var accounts = _accountStates
+                .Where(x => x.Value.LoggedIn)
+                .Select(x => new AvailableAccount
+                {
+                    AccountId = x.Key,
+                    Platform = x.Value.Platform,
+                    IsStarted = true,
+                    LoginStatus = AccountLoginStatus.LoggedIn,
+                    DisplayName = x.Key
+                })
+                .ToList();
+            return Task.FromResult(accounts);
+        }
+
+        /// <summary>
+        /// 从多个账号读取岗位
+        /// </summary>
+        public async Task<List<JobFetchResult>> FetchJobsFromMultipleAccountsAsync(
+            IEnumerable<string> accountIds, bool useAI, CancellationToken ct = default)
+        {
+            var results = new List<JobFetchResult>();
+            _globalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+
+            foreach (var accountId in accountIds)
+            {
+                if (_globalCts.Token.IsCancellationRequested)
+                    break;
+
+                var result = await FetchJobsFromAccountAsync(accountId, useAI, _globalCts.Token);
+                results.Add(result);
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// 取消所有操作
+        /// </summary>
+        public void CancelAll()
+        {
+            try
+            {
+                _globalCts?.Cancel();
+                foreach (var cts in _runningTasks.Values)
+                {
+                    try { cts.Cancel(); } catch { }
+                }
+                _runningTasks.Clear();
+            }
+            catch { }
         }
 
         public async Task<JobFetchResult> FetchJobsFromAccountAsync(string accountId, bool useAI, CancellationToken ct = default)
@@ -80,16 +148,16 @@ namespace RecruitAutomation.Browser.JobFetcher
 
     public class JobFetchProgressEventArgs : EventArgs
     {
-        public string AccountId { get; set; }
-        public string Message { get; set; }
+        public string AccountId { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
         public int Percentage { get; set; }
     }
 
     public class JobFetchResult : EventArgs
     {
-        public string AccountId { get; set; }
+        public string AccountId { get; set; } = string.Empty;
         public bool Success { get; set; }
-        public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
         public List<JobPosition> Jobs { get; set; } = new();
     }
 }

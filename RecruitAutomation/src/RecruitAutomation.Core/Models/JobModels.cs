@@ -208,6 +208,12 @@ namespace RecruitAutomation.Core.Models
         #region 自动化执行相关
 
         /// <summary>
+        /// UI选中状态（不持久化）
+        /// </summary>
+        [JsonIgnore]
+        public bool IsSelected { get; set; }
+
+        /// <summary>
         /// 是否启用自动化
         /// </summary>
         [JsonPropertyName("automationEnabled")]

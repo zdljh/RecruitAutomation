@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using RecruitAutomation.App.Helpers;
 using RecruitAutomation.Core.Models;
 using RecruitAutomation.Core.Runtime;
 using RecruitAutomation.Core.Services;
@@ -49,7 +50,7 @@ namespace RecruitAutomation.App.Runtime
 
         // 事件
         public event Action<string, string, int>? OnProgress;
-        public event Action<JobFetchResult>? OnCompleted;
+        public event Action<BrowserJobFetchResult>? OnCompleted;
 
         private BrowserModuleController() { }
 
@@ -102,7 +103,17 @@ namespace RecruitAutomation.App.Runtime
             };
             service.OnCompleted += (s, e) =>
             {
-                try { OnCompleted?.Invoke(e); } catch { }
+                try 
+                { 
+                    OnCompleted?.Invoke(new BrowserJobFetchResult
+                    {
+                        AccountId = e.AccountId,
+                        Success = e.Success,
+                        ErrorMessage = e.ErrorMessage,
+                        Jobs = e.Jobs
+                    }); 
+                } 
+                catch { }
             };
             _jobFetchService = service;
         }
@@ -176,42 +187,56 @@ namespace RecruitAutomation.App.Runtime
         /// 从单个账号读取岗位
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public async Task<JobFetchResult> FetchJobsFromAccountAsync(string accountId, bool useAI, CancellationToken ct)
+        public async Task<BrowserJobFetchResult> FetchJobsFromAccountAsync(string accountId, bool useAI, CancellationToken ct)
         {
             try
             {
                 if (_jobFetchService is Browser.JobFetcher.JobFetchService service)
                 {
-                    return await service.FetchJobsFromAccountAsync(accountId, useAI, ct);
+                    var result = await service.FetchJobsFromAccountAsync(accountId, useAI, ct);
+                    return new BrowserJobFetchResult
+                    {
+                        AccountId = result.AccountId,
+                        Success = result.Success,
+                        ErrorMessage = result.ErrorMessage,
+                        Jobs = result.Jobs
+                    };
                 }
             }
             catch (Exception ex)
             {
                 WriteError("FetchJobsFromAccountAsync", ex);
-                return new JobFetchResult { Success = false, ErrorMessage = ex.Message };
+                return new BrowserJobFetchResult { Success = false, ErrorMessage = ex.Message };
             }
-            return new JobFetchResult { Success = false, ErrorMessage = "服务未初始化" };
+            return new BrowserJobFetchResult { Success = false, ErrorMessage = "服务未初始化" };
         }
 
         /// <summary>
         /// 从多个账号读取岗位
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public async Task<List<JobFetchResult>> FetchJobsFromMultipleAccountsAsync(
+        public async Task<List<BrowserJobFetchResult>> FetchJobsFromMultipleAccountsAsync(
             IEnumerable<string> accountIds, bool useAI, CancellationToken ct)
         {
             try
             {
                 if (_jobFetchService is Browser.JobFetcher.JobFetchService service)
                 {
-                    return await service.FetchJobsFromMultipleAccountsAsync(accountIds, useAI, ct);
+                    var results = await service.FetchJobsFromMultipleAccountsAsync(accountIds, useAI, ct);
+                    return results.ConvertAll(r => new BrowserJobFetchResult
+                    {
+                        AccountId = r.AccountId,
+                        Success = r.Success,
+                        ErrorMessage = r.ErrorMessage,
+                        Jobs = r.Jobs
+                    });
                 }
             }
             catch (Exception ex)
             {
                 WriteError("FetchJobsFromMultipleAccountsAsync", ex);
             }
-            return new List<JobFetchResult>();
+            return new List<BrowserJobFetchResult>();
         }
 
         /// <summary>

@@ -29,7 +29,56 @@ namespace RecruitAutomation.Browser
 
         public static BrowserInstanceManager Instance => _instance.Value;
 
+        /// <summary>
+        /// 最大允许账号数
+        /// </summary>
+        public int MaxAllowedAccounts => LicenseGuard.Instance.CurrentLicense?.MaxAccounts ?? 1;
+
+        /// <summary>
+        /// 获取所有运行中的账号ID
+        /// </summary>
+        public IEnumerable<string> RunningAccountIds => _instances.Keys;
+
+        /// <summary>
+        /// 获取所有运行中的实例
+        /// </summary>
+        public IEnumerable<AccountBrowserInstance> GetAllInstances() => _instances.Values;
+
+        /// <summary>
+        /// 检查账号是否正在运行
+        /// </summary>
+        public bool IsRunning(string accountId) => _instances.ContainsKey(accountId);
+
         private BrowserInstanceManager() { }
+
+        /// <summary>
+        /// 获取已存在的浏览器实例
+        /// </summary>
+        public AccountBrowserInstance? Get(string accountId)
+        {
+            _instances.TryGetValue(accountId, out var instance);
+            return instance;
+        }
+
+        /// <summary>
+        /// 同步关闭浏览器实例
+        /// </summary>
+        public bool Close(string accountId)
+        {
+            if (_instances.TryRemove(accountId, out var instance))
+            {
+                try
+                {
+                    instance.Dispose();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            return false;
+        }
 
         public AccountBrowserInstance? GetOrCreate(string accountId, string startUrl = "about:blank")
         {

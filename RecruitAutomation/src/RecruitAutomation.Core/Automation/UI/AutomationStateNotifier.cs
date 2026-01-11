@@ -46,8 +46,9 @@ namespace RecruitAutomation.Core.Automation.UI
 
             // 订阅 AI 决策服务事件
             AIDecisionService.Instance.DecisionMade += OnDecisionMade;
-            AIDecisionService.Instance.ConfirmRequired += OnConfirmRequired;
-            AIDecisionService.Instance.Error += OnDecisionError;
+            // 注：ConfirmRequired 和 Error 事件在当前 AIDecisionService 中未实现
+            // AIDecisionService.Instance.ConfirmRequired += OnConfirmRequired;
+            // AIDecisionService.Instance.Error += OnDecisionError;
         }
 
         /// <summary>
@@ -129,33 +130,21 @@ namespace RecruitAutomation.Core.Automation.UI
                 new ErrorNotificationEventArgs("调度器错误", e.Exception.Message, e.Command?.CommandId)));
         }
 
-        private void OnDecisionMade(object? sender, DecisionMadeEventArgs e)
+        private void OnDecisionMade(object? sender, AIDecisionOutput? e)
         {
+            if (e == null) return;
             SafeRaiseEvent(() => DecisionNotification?.Invoke(this,
                 new DecisionNotificationEventArgs(
-                    e.Decision.DecisionId,
-                    e.Decision.Type,
-                    e.Decision.Reasoning,
-                    e.Decision.Confidence,
-                    e.Decision.RequireHumanConfirm)));
+                    e.DecisionId,
+                    e.Type,
+                    e.Reasoning,
+                    e.Confidence,
+                    e.RequireHumanConfirm)));
         }
 
-        private void OnConfirmRequired(object? sender, DecisionConfirmRequiredEventArgs e)
-        {
-            SafeRaiseEvent(() => DecisionNotification?.Invoke(this,
-                new DecisionNotificationEventArgs(
-                    e.Decision.DecisionId,
-                    e.Decision.Type,
-                    e.Decision.ConfirmReason ?? "需要人工确认",
-                    e.Decision.Confidence,
-                    true)));
-        }
-
-        private void OnDecisionError(object? sender, DecisionErrorEventArgs e)
-        {
-            SafeRaiseEvent(() => ErrorNotification?.Invoke(this,
-                new ErrorNotificationEventArgs("AI 决策错误", e.Exception.Message, null)));
-        }
+        // 注：以下事件处理器保留供未来扩展使用
+        // private void OnConfirmRequired(object? sender, ...) { }
+        // private void OnDecisionError(object? sender, ...) { }
 
         #endregion
 

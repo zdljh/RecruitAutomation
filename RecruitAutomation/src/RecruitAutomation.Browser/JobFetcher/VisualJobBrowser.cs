@@ -109,12 +109,13 @@ namespace RecruitAutomation.Browser.JobFetcher
             return result;
         }
 
-        private async Task<byte[]> CaptureViewportScreenshotAsync(AccountBrowserInstance browser)
+        private async Task<byte[]?> CaptureViewportScreenshotAsync(AccountBrowserInstance browser)
         {
             try
             {
                 var devTools = browser.Browser.GetDevToolsClient();
-                var response = await devTools.Page.CaptureScreenshotAsync(format: "png");
+                var response = await devTools.Page.CaptureScreenshotAsync(
+                    format: CefSharp.DevTools.Page.CaptureScreenshotFormat.Png);
                 return response.Data;
             }
             catch (Exception ex)
@@ -157,5 +158,31 @@ namespace RecruitAutomation.Browser.JobFetcher
             }
             catch { }
         }
+
+        public bool PauseForManualObservation { get; set; } = false;
+    }
+
+    /// <summary>
+    /// 视觉浏览结果
+    /// </summary>
+    public class VisualBrowseResult
+    {
+        public string AccountId { get; set; } = string.Empty;
+        public BrowseStatus Status { get; set; } = BrowseStatus.Unknown;
+        public string? Reason { get; set; }
+        public List<JobPosition> Jobs { get; set; } = new();
+        public int TotalJobsFound { get; set; }
+    }
+
+    /// <summary>
+    /// 浏览状态
+    /// </summary>
+    public enum BrowseStatus
+    {
+        Unknown,
+        Success,
+        Error,
+        NeedLogin,
+        Timeout
     }
 }
