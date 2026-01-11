@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -13,31 +13,17 @@ namespace RecruitAutomation.Browser.JobFetcher
     {
         private static readonly string DataRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RecruitAutomation");
+        private static readonly string DebugDir = Path.Combine(DataRoot, "debug");
         private static readonly string LogPath = Path.Combine(DataRoot, "logs", "visual_browser.log");
-        private static readonly string ScreenshotPath = Path.Combine(DataRoot, "screenshots");
 
-        private readonly HumanBehaviorSimulator _humanBehavior;
         private readonly AIVisionAnalyzer _visionAnalyzer;
-        private readonly JobFetchDebugger _debugger;
         private readonly Random _random = new();
 
-        public bool DebugMode
-        {
-            get => _debugger.IsDebugMode;
-            set => _debugger.IsDebugMode = value;
-        }
-
-        public bool PauseForManualObservation
-        {
-            get => _debugger.PauseForManualObservation;
-            set => _debugger.PauseForManualObservation = value;
-        }
+        public bool DebugMode { get; set; } = true;
 
         public VisualJobBrowser(HumanBehaviorSimulator? humanBehavior = null, AIVisionAnalyzer? visionAnalyzer = null)
         {
-            _humanBehavior = humanBehavior ?? new HumanBehaviorSimulator();
             _visionAnalyzer = visionAnalyzer ?? new AIVisionAnalyzer();
-            _debugger = new JobFetchDebugger();
             EnsureDirectories();
         }
 
@@ -47,266 +33,115 @@ namespace RecruitAutomation.Browser.JobFetcher
         public async Task<VisualBrowseResult> BrowseJobsAsync(
             AccountBrowserInstance browser, string accountId, CancellationToken ct = default)
         {
-            var result = new VisualBrowseResult { AccountId = accountId };
-
-            if (browser?.Browser == null)
-            {
-                result.Status = BrowseStatus.Error;
-                result.Reason = "Browser instance is null";
-                result.Stage = "init";
-                return result;
-            }
+            var result = new VisualBrowseResult { AccountId = accountId, Jobs = new List<JobPosition>() };
 
             try
             {
-                _debugger.StartDebugSession(browser, accountId);
-
-                Log($"Starting job browse for: {accountId}");
-
-                _debugger.UpdateStep(1, 6, "Waiting for page to stabilize...");
-                await Task.Delay(_random.Next(2000, 3500), ct);
-
-                _debugger.UpdateStep(2, 6, "Diagnosing page type...");
-                var diagnostic = await _debugger.DiagnosePageAsync(browser, ct);
+                Log(">>> 开始 AI 图像识别岗位流程 <<<");
                 
-                result.Stage = "diagnose";
-                result.PageType = diagnostic.PageType.ToString();
-                result.CurrentUrl = diagnostic.Url;
+                // 1. 等待页面稳定
+                await Task.Delay(_random.Next(2000, 3000), ct);
 
-                Log($"Page diagnosis: {diagnostic.PageType} - {diagnostic.Detail}");
-
-                if (diagnostic.PageType == PageDiagnosticType.LoginPage)
-                {
-                    result.Status = BrowseStatus.NeedLogin;
-                    result.Reason = "Login page detected";
-                    result.Suggest = diagnostic.GetSuggestion();
-                    return result;
-                }
-
-                if (diagnostic.PageType == PageDiagnosticType.RiskControl)
-                {
-                    result.Status = BrowseStatus.Blocked;
-                    result.Reason = "Risk control page detected";
-                    result.Suggest = diagnostic.GetSuggestion();
-                    return result;
-                }
-
-                if (diagnostic.PageType == PageDiagnosticType.Loading)
-                {
-                    _debugger.UpdateStep(2, 6, "Page loading, waiting...");
-                    await Task.Delay(3000, ct);
-                    diagnostic = await _debugger.DiagnosePageAsync(browser, ct);
-                }
-
-                if (diagnostic.PageType == PageDiagnosticType.EmptyState)
-                {
-                    result.Status = BrowseStatus.Success;
-                    result.Reason = "No jobs published for this account";
-                    result.TotalJobsFound = 0;
-                    return result;
-                }
-
-                await _debugger.WaitForUserConfirmationAsync(
-                    $"Page diagnosis complete\n\nType: {diagnostic.PageType}\nDetail: {diagnostic.Detail}\nVisible jobs: {diagnostic.VisibleJobCount}\n\nContinue?", ct);
-
-                _debugger.UpdateStep(3, 6, "Capturing screenshot...");
-                var screenshot = await CaptureScreenshotAsync(browser, "job_list");
-                
+                // 2. 截图采集
+                Log("正在采集浏览器视口截图...");
+                var screenshot = await CaptureViewportScreenshotAsync(browser);
                 if (screenshot == null)
                 {
                     result.Status = BrowseStatus.Error;
-                    result.Reason = "Screenshot capture failed";
-                    result.Stage = "screenshot";
+                    result.Reason = "截图采集失败";
                     return result;
                 }
 
-                _debugger.UpdateStep(4, 6, "AI vision analysis...");
+                // 3. 保存调试截图
+                var debugPath = SaveDebugScreenshot(screenshot);
+                Log($"调试截图已保存: {debugPath}");
+
+                // 4. AI 视觉分析
+                Log("正在调用 AI 视觉模型进行结构化识别...");
                 var analysis = await _visionAnalyzer.AnalyzeJobListScreenAsync(screenshot, ct);
                 
-                result.Stage = "ai_analysis";
-
                 if (!analysis.Success)
                 {
                     result.Status = BrowseStatus.Error;
-                    result.Reason = $"AI analysis failed: {analysis.ErrorMessage}";
+                    result.Reason = $"AI 识别失败: {analysis.ErrorMessage}";
+                    Log(result.Reason);
                     return result;
                 }
 
-                if (analysis.NeedLogin)
-                {
-                    result.Status = BrowseStatus.NeedLogin;
-                    result.Reason = "AI detected login required";
-                    return result;
-                }
-
-                if (analysis.JobCards.Count == 0)
-                {
-                    _debugger.UpdateStep(5, 6, "No jobs found, scrolling...");
-                    await SimulateHumanScroll(browser, ct);
-                    await Task.Delay(_random.Next(1500, 2500), ct);
-                    
-                    screenshot = await CaptureScreenshotAsync(browser, "scroll");
-                    if (screenshot != null)
-                    {
-                        analysis = await _visionAnalyzer.AnalyzeJobListScreenAsync(screenshot, ct);
-                    }
-                }
-
-                _debugger.UpdateStep(6, 6, "Processing results...");
-
-                if (analysis.JobCards.Count == 0)
-                {
-                    result.Status = BrowseStatus.Blocked;
-                    result.Reason = "AI could not detect any job cards";
-                    result.Suggest = "Check: 1. Page displays jobs correctly 2. Not blocked by anti-crawler 3. Screenshot saved correctly";
-                    result.Stage = "no_jobs_detected";
-                    
-                    result.DiagnosticInfo = new DiagnosticInfo
-                    {
-                        PageDiagnosis = diagnostic.PageType.ToString(),
-                        VisibleJobCount = diagnostic.VisibleJobCount,
-                        AIDetectedCount = 0,
-                        ScreenshotPath = diagnostic.ScreenshotPath,
-                        PageTextSample = diagnostic.VisibleText
-                    };
-                    
-                    return result;
-                }
-
+                // 5. 结果处理
+                Log($"AI 识别完成。识别到岗位数量: {analysis.JobCards.Count}");
                 result.TotalJobsFound = analysis.JobCards.Count;
-                
+
                 foreach (var card in analysis.JobCards)
                 {
-                    if (DebugMode)
+                    var job = new JobPosition
                     {
-                        _debugger.HighlightArea(card.CenterX - 100, card.CenterY - 30, 200, 60, card.Title);
-                        await Task.Delay(500, ct);
-                    }
-
-                    if (IsJobOpen(card.StatusText))
-                    {
-                        result.OpenJobsCount++;
-                        result.Jobs.Add(CreateJobFromCard(card, accountId));
-                        Log($"Found open job: {card.Title} - {card.StatusText}");
-                    }
+                        Platform = RecruitPlatform.Boss,
+                        AccountId = accountId,
+                        Title = card.Title,
+                        SalaryText = card.SalaryText,
+                        Location = card.Location ?? "未知",
+                        ExperienceRequired = card.Experience ?? "不限",
+                        EducationRequired = card.Education ?? "不限",
+                        Status = JobStatus.Open,
+                        FetchedAt = DateTime.UtcNow,
+                        Id = $"boss_{accountId}_{Guid.NewGuid():N}"
+                    };
+                    result.Jobs.Add(job);
                 }
 
-                _debugger.ClearHighlight();
+                if (result.Jobs.Count > 0)
+                {
+                    var first = result.Jobs[0];
+                    Log($"首条识别结果: {first.Title} | {first.SalaryText} | {first.Location}");
+                }
 
-                result.Status = result.Jobs.Count > 0 ? BrowseStatus.Success : BrowseStatus.PartialSuccess;
-                result.Stage = "completed";
-
-                Log($"Browse complete: Total={result.TotalJobsFound}, Open={result.OpenJobsCount}");
-            }
-            catch (OperationCanceledException)
-            {
-                result.Status = BrowseStatus.Cancelled;
-                result.Reason = "Operation cancelled";
-                result.Stage = "cancelled";
+                result.Status = BrowseStatus.Success;
+                Log(">>> AI 图像识别流程结束 <<<");
             }
             catch (Exception ex)
             {
                 result.Status = BrowseStatus.Error;
-                result.Reason = ex.Message;
-                result.Stage = "exception";
-                Log($"Exception: {ex}");
-            }
-            finally
-            {
-                if (!DebugMode)
-                {
-                    _debugger.EndDebugSession();
-                }
+                result.Reason = $"识别过程发生异常: {ex.Message}";
+                Log(result.Reason);
             }
 
             return result;
         }
 
-        private async Task SimulateHumanScroll(AccountBrowserInstance browser, CancellationToken ct)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                ct.ThrowIfCancellationRequested();
-                var scrollY = _random.Next(200, 400);
-                await browser.Browser.EvaluateScriptAsync($"window.scrollBy(0,{scrollY})");
-                await Task.Delay(_random.Next(400, 800), ct);
-            }
-            await browser.Browser.EvaluateScriptAsync("window.scrollTo(0,0)");
-            await Task.Delay(_random.Next(500, 1000), ct);
-        }
-
-        private async Task<byte[]?> CaptureScreenshotAsync(AccountBrowserInstance browser, string name)
+        private async Task<byte[]> CaptureViewportScreenshotAsync(AccountBrowserInstance browser)
         {
             try
             {
                 var devTools = browser.Browser.GetDevToolsClient();
-                if (devTools == null) return await FallbackCaptureAsync(browser, name);
-
-                var result = await devTools.Page.CaptureScreenshotAsync();
-                if (result?.Data == null) return await FallbackCaptureAsync(browser, name);
-
-                byte[] bytes = result.Data;
-                SaveScreenshot(bytes, name);
-                return bytes;
+                var response = await devTools.Page.CaptureScreenshotAsync(format: "png");
+                return response.Data;
             }
-            catch
+            catch (Exception ex)
             {
-                return await FallbackCaptureAsync(browser, name);
+                Log($"截图异常: {ex.Message}");
+                return null;
             }
         }
 
-        private async Task<byte[]?> FallbackCaptureAsync(AccountBrowserInstance browser, string name)
+        private string SaveDebugScreenshot(byte[] data)
         {
             try
             {
-                var result = await browser.Browser.EvaluateScriptAsync(
-                    "(function(){return JSON.stringify({text:document.body.innerText||'',url:location.href});})();");
-                if (result.Success && result.Result != null)
-                {
-                    var text = result.Result.ToString() ?? "";
-                    return System.Text.Encoding.UTF8.GetBytes(text);
-                }
-            }
-            catch { }
-            return null;
-        }
-
-        private void SaveScreenshot(byte[] data, string name)
-        {
-            try
-            {
-                var path = Path.Combine(ScreenshotPath, $"{DateTime.Now:yyyyMMdd_HHmmss}_{name}.png");
+                var fileName = $"debug_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+                var path = Path.Combine(DebugDir, fileName);
                 File.WriteAllBytes(path, data);
+                return path;
             }
-            catch { }
+            catch { return "save_failed"; }
         }
-
-        private bool IsJobOpen(string? status)
-        {
-            if (string.IsNullOrEmpty(status)) return false;
-            return status.Contains("开放") || status.Contains("招聘中") || status.Contains("在招");
-        }
-
-        private JobPosition CreateJobFromCard(VisualJobCard card, string accountId) => new()
-        {
-            Platform = RecruitPlatform.Boss,
-            AccountId = accountId,
-            PlatformJobId = $"boss_{card.Title.GetHashCode():X}_{DateTime.Now.Ticks}",
-            Id = $"boss_{accountId}_{card.Title.GetHashCode():X}",
-            Title = card.Title,
-            SalaryText = card.SalaryText,
-            Location = card.Location ?? "",
-            ExperienceRequired = card.Experience ?? "",
-            EducationRequired = card.Education ?? "",
-            Status = JobStatus.Open,
-            FetchedAt = DateTime.UtcNow
-        };
 
         private void Log(string msg)
         {
             try
             {
-                File.AppendAllText(LogPath, $"[{DateTime.Now:HH:mm:ss}] {msg}\n");
+                var logMsg = $"[{DateTime.Now:HH:mm:ss}] {msg}\n";
+                File.AppendAllText(LogPath, logMsg);
                 System.Diagnostics.Debug.WriteLine($"[VisualJobBrowser] {msg}");
             }
             catch { }
@@ -316,11 +151,9 @@ namespace RecruitAutomation.Browser.JobFetcher
         {
             try
             {
+                if (!Directory.Exists(DebugDir)) Directory.CreateDirectory(DebugDir);
                 var logDir = Path.GetDirectoryName(LogPath);
-                if (!string.IsNullOrEmpty(logDir) && !Directory.Exists(logDir))
-                    Directory.CreateDirectory(logDir);
-                if (!Directory.Exists(ScreenshotPath))
-                    Directory.CreateDirectory(ScreenshotPath);
+                if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
             }
             catch { }
         }
