@@ -22,8 +22,9 @@ namespace RecruitAutomation.Browser.JobFetcher
         private readonly AIJobPageAnalyzer _aiAnalyzer;
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _runningTasks;
         
-        // 账号登录状态缓存（accountId -> 登录状态）
-        private readonly ConcurrentDictionary<string, AccountLoginInfo> _loginStatusCache;
+        // 【修复】账号登录状态缓存改为静态，确保跨实例共享
+        // 这样即使 BrowserHelper 创建新的 JobFetchService 实例，登录状态也不会丢失
+        private static readonly ConcurrentDictionary<string, AccountLoginInfo> _loginStatusCache = new();
 
         /// <summary>
         /// AI配置
@@ -60,7 +61,6 @@ namespace RecruitAutomation.Browser.JobFetcher
             _humanBehavior = new HumanBehaviorSimulator();
             _aiAnalyzer = new AIJobPageAnalyzer();
             _runningTasks = new ConcurrentDictionary<string, CancellationTokenSource>();
-            _loginStatusCache = new ConcurrentDictionary<string, AccountLoginInfo>();
 
             // 注册各平台读取器（支持AI模式）
             _readers = new Dictionary<RecruitPlatform, IJobPageReader>
@@ -136,6 +136,7 @@ namespace RecruitAutomation.Browser.JobFetcher
         /// <summary>
         /// 获取可用于岗位读取的账号列表
         /// 唯一数据源：BrowserInstanceManager 中真实运行的浏览器实例
+        /// 【修复】优先使用缓存中的登录状态，避免覆盖已标记的登录状态
         /// </summary>
         public async Task<List<AvailableAccount>> GetAvailableAccountsAsync(
             RecruitPlatform? platform = null)
@@ -155,17 +156,28 @@ namespace RecruitAutomation.Browser.JobFetcher
                 if (platform.HasValue && detectedPlatform != platform.Value)
                     continue;
 
-                // 检查登录状态（实时检测）
-                var loginStatus = await CheckLoginStatusAsync(instance, detectedPlatform);
-                
-                // 更新缓存
-                _loginStatusCache[accountId] = new AccountLoginInfo
+                // 【修复】优先使用缓存中的登录状态
+                AccountLoginStatus loginStatus;
+                if (_loginStatusCache.TryGetValue(accountId, out var cached) 
+                    && cached.LoginStatus == AccountLoginStatus.LoggedIn)
                 {
-                    AccountId = accountId,
-                    Platform = detectedPlatform,
-                    LoginStatus = loginStatus,
-                    LastChecked = DateTime.UtcNow
-                };
+                    // 缓存中已标记为已登录，直接使用
+                    loginStatus = AccountLoginStatus.LoggedIn;
+                }
+                else
+                {
+                    // 缓存中没有或不是已登录状态，实时检测
+                    loginStatus = await CheckLoginStatusAsync(instance, detectedPlatform);
+                    
+                    // 更新缓存
+                    _loginStatusCache[accountId] = new AccountLoginInfo
+                    {
+                        AccountId = accountId,
+                        Platform = detectedPlatform,
+                        LoginStatus = loginStatus,
+                        LastChecked = DateTime.UtcNow
+                    };
+                }
 
                 accounts.Add(new AvailableAccount
                 {

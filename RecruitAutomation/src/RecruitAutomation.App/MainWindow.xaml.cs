@@ -416,6 +416,11 @@ namespace RecruitAutomation.App
                 {
                     UpdateAccountStats();
                 }
+                // 【关键修复】切换到岗位管理时自动刷新账号列表
+                if (panelName == "Jobs")
+                {
+                    _ = SafeRefreshJobAccountsAsync();
+                }
             }
             catch (Exception ex)
             {
