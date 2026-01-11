@@ -6,11 +6,27 @@
         MinHeight="600" MinWidth="500"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
-        Background="#F8F8F8">
+        Background="#F4F7F9">
     
-    <Grid Margin="25">
+    <Window.Resources>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#2C3E50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Template.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Template.Value>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="30">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -20,106 +36,43 @@
         </Grid.RowDefinitions>
 
         <!-- 标题 -->
-        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,15">
-            <TextBlock Text="🔒 软件授权" 
-                       FontSize="24" 
-                       FontWeight="Bold" 
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text="招聘自动化系统" 
-                       FontSize="14" 
-                       Foreground="#666"
-                       HorizontalAlignment="Center"
-                       Margin="0,5,0,0"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,25">
+            <TextBlock Text="🔒 软件授权激活" FontSize="26" FontWeight="Bold" Foreground="#2C3E50" HorizontalAlignment="Center"/>
+            <TextBlock Text="请复制机器码发送给管理员获取授权" FontSize="14" Foreground="#7F8C8D" HorizontalAlignment="Center" Margin="0,8,0,0"/>
         </StackPanel>
 
-        <!-- 授权状态提示 -->
-        <Border Grid.Row="1" 
-                x:Name="borderStatus"
-                Background="#FFF3CD" 
-                BorderBrush="#FFEEBA" 
-                BorderThickness="1" 
-                CornerRadius="5" 
-                Padding="12"
-                Margin="0,0,0,15">
+        <!-- 状态提示 -->
+        <Border Grid.Row="1" x:Name="borderStatus" Background="#EBF5FB" BorderBrush="#AED6F1" BorderThickness="1" CornerRadius="6" Padding="15" Margin="0,0,0,20">
             <StackPanel>
-                <TextBlock x:Name="txtStatusTitle"
-                           Text="⚠ 未授权" 
-                           FontSize="14" 
-                           FontWeight="Bold" 
-                           Foreground="#856404"/>
-                <TextBlock x:Name="txtStatusMessage" 
-                           Text="请获取授权后使用完整功能" 
-                           Foreground="#856404" 
-                           Margin="0,3,0,0"
-                           TextWrapping="Wrap"
-                           FontSize="12"/>
+                <TextBlock x:Name="txtStatusTitle" Text="⚠ 待激活" FontSize="15" FontWeight="Bold" Foreground="#2E86C1"/>
+                <TextBlock x:Name="txtStatusMessage" Text="当前软件处于未授权状态，请粘贴授权码激活。" Foreground="#5499C7" Margin="0,5,0,0" FontSize="13"/>
             </StackPanel>
         </Border>
 
-        <!-- 机器码 -->
-        <GroupBox Grid.Row="2" Header="您的机器码（发送给管理员获取授权码）" Padding="10" Margin="0,0,0,12">
-            <Grid>
+        <!-- 机器码区域 -->
+        <GroupBox Grid.Row="2" Header="本机唯一识别码 (Machine Code)" Foreground="#34495E" Padding="10" Margin="0,0,0,15">
+            <Grid Margin="0,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                
-                <TextBox x:Name="txtMachineCode" 
-                         Grid.Column="0"
-                         IsReadOnly="True"
-                         FontFamily="Consolas"
-                         FontSize="14"
-                         Padding="10"
-                         Background="#FAFAFA"
-                         VerticalContentAlignment="Center"/>
-                
-                <Button Grid.Column="1" 
-                        Content="复制" 
-                        Margin="10,0,0,0"
-                        Padding="20,10"
-                        Click="BtnCopyMachineCode_Click"/>
+                <TextBox x:Name="txtMachineCode" IsReadOnly="True" Background="#ECF0F1" Foreground="#2C3E50" FontWeight="SemiBold" Padding="12" FontSize="14" BorderThickness="1" BorderBrush="#BDC3C7"/>
+                <Button Grid.Column="1" Content="复制机器码" Margin="10,0,0,0" Padding="15,0" Background="#3498DB" Foreground="White" FontWeight="Bold" Click="BtnCopyMachineCode_Click" Cursor="Hand"/>
             </Grid>
         </GroupBox>
 
         <!-- 授权码输入 -->
-        <GroupBox Grid.Row="3" Header="粘贴授权码" Padding="10" Margin="0,0,0,12">
-            <TextBox x:Name="txtLicenseCode" 
-                     Height="100"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     VerticalScrollBarVisibility="Auto"
-                     FontFamily="Consolas"
-                     FontSize="11"
-                     Padding="10"
-                     Background="White"
-                     VerticalContentAlignment="Top"/>
+        <GroupBox Grid.Row="3" Header="输入授权激活码" Foreground="#34495E" Padding="10" Margin="0,0,0,15">
+            <TextBox x:Name="txtLicenseCode" Height="120" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Padding="10" FontSize="13" BorderThickness="1" BorderBrush="#BDC3C7"/>
         </GroupBox>
 
-        <!-- License 信息 -->
-        <GroupBox Grid.Row="4" Header="授权信息" Padding="10" Margin="0,0,0,10"
-                  x:Name="grpLicenseInfo" Visibility="Collapsed">
-            <TextBox x:Name="txtLicenseInfo"
-                     IsReadOnly="True"
-                     TextWrapping="Wrap"
-                     FontSize="11"
-                     Padding="8"
-                     Background="#FAFAFA"
-                     Height="60"
-                     VerticalScrollBarVisibility="Auto"/>
-        </GroupBox>
-
-        <!-- 占位 -->
-        <Grid Grid.Row="5"/>
-
-        <!-- 操作按钮 -->
-        <Button Grid.Row="6" 
-                Content="激活授权" 
-                Padding="15,14"
-                Background="#4CAF50"
-                Foreground="White"
-                BorderThickness="0"
-                FontWeight="Bold"
-                FontSize="15"
-                Click="BtnActivate_Click"/>
+        <!-- 激活按钮 -->
+        <Button Grid.Row="5" Content="立即激活软件" Height="50" Background="#27AE60" Foreground="White" FontSize="16" FontWeight="Bold" BorderThickness="0" Click="BtnActivate_Click" Cursor="Hand">
+            <Button.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="6"/>
+                </Style>
+            </Button.Resources>
+        </Button>
     </Grid>
 </Window>
