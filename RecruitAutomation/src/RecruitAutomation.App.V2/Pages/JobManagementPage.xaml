@@ -1,0 +1,144 @@
+<UserControl x:Class="RecruitAutomation.App.V2.Pages.JobManagementPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F5F5F5">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: 页面标题 -->
+        <Border Grid.Row="0" Background="White" Padding="20,15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="岗位管理" FontSize="22" FontWeight="Bold" Foreground="#333"/>
+                    <TextBlock Text="App Shell: V2 / JOB-READER-REWRITE" Foreground="#FF9800" FontSize="11" Margin="0,3,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="10" Height="10" Fill="#4CAF50" Margin="0,0,8,0"/>
+                    <TextBlock Text="系统就绪" Foreground="#666"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Row 1: 账号选择和操作按钮 -->
+        <Border Grid.Row="1" Background="White" Padding="20,12" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="选择账号：" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                <ComboBox x:Name="cmbAccounts" Width="220" Height="32">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Fill" Value="Gray"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsAvailable}" Value="True">
+                                                    <Setter Property="Fill" Value="#4CAF50"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <TextBlock Text="{Binding DisplayName}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Content="🔄 刷新" Height="32" Padding="12,0" Margin="8,0,0,0" Click="BtnRefresh_Click"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Row 2: 调试工具栏 - 橙色背景 - 永久可见 -->
+        <Border Grid.Row="2" Background="#FF9800" Padding="15,12" BorderBrush="#E65100" BorderThickness="0,0,0,3">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <TextBlock Text="🔧 调试模式 (V2 REWRITE)" FontWeight="Bold" FontSize="14" Foreground="White" VerticalAlignment="Center" Margin="0,0,25,0"/>
+                    
+                    <Button x:Name="btnOpenBrowser" Content="🌐 打开浏览器窗口" Height="32" Padding="15,0" Margin="0,0,10,0" 
+                            Background="#4CAF50" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnOpenBrowser_Click"/>
+                    <Button x:Name="btnGoToJobPage" Content="📋 进入职位管理页" Height="32" Padding="15,0" Margin="0,0,10,0" 
+                            Background="#2196F3" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnGoToJobPage_Click"/>
+                    <Button x:Name="btnReadJobs" Content="🔍 读取岗位(调试)" Height="32" Padding="15,0" Margin="0,0,10,0" 
+                            Background="#9C27B0" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnReadJobs_Click"/>
+                    <Button x:Name="btnScreenshot" Content="📷 截图" Height="32" Padding="15,0" Margin="0,0,10,0" 
+                            Background="#607D8B" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnScreenshot_Click"/>
+                </StackPanel>
+                
+                <Border Grid.Row="1" Background="#FFF3E0" CornerRadius="4" Padding="12,8" Margin="0,10,0,0">
+                    <TextBlock x:Name="txtDebugStatus" Text="状态：等待操作..." Foreground="#E65100" FontSize="12" FontWeight="SemiBold"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Row 3: 调试控制台输出 -->
+        <Border Grid.Row="3" Background="#1E1E1E" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="📟 调试控制台" Foreground="#4CAF50" FontWeight="Bold" FontSize="12" Margin="0,0,0,5"/>
+                <ScrollViewer Grid.Row="1" x:Name="consoleScroller" VerticalScrollBarVisibility="Auto">
+                    <TextBlock x:Name="txtConsole" Foreground="#4CAF50" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap"
+                               Text="[系统启动] App Shell: V2 / JOB-READER-REWRITE&#x0a;[就绪] 等待用户操作..."/>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Row 4: 岗位列表 -->
+        <Border Grid.Row="4" Margin="15,10,15,10" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
+            <DataGrid x:Name="dgJobs" AutoGenerateColumns="False" IsReadOnly="True"
+                      SelectionMode="Extended" SelectionUnit="FullRow"
+                      CanUserAddRows="False" CanUserDeleteRows="False"
+                      GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                      Background="White" BorderThickness="0" RowHeight="38">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Width="40" Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <DataGridTextColumn Header="平台" Binding="{Binding Platform}" Width="60"/>
+                    <DataGridTextColumn Header="岗位名称" Binding="{Binding Title}" Width="*" MinWidth="150"/>
+                    <DataGridTextColumn Header="薪资" Binding="{Binding Salary}" Width="100"/>
+                    <DataGridTextColumn Header="地点" Binding="{Binding Location}" Width="80"/>
+                    <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="60"/>
+                    <DataGridTextColumn Header="读取时间" Binding="{Binding FetchTime}" Width="100"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Row 5: 底部状态栏 -->
+        <Border Grid.Row="5" Background="White" Padding="15,10" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="txtStats" Text="共 0 个岗位" VerticalAlignment="Center"/>
+                    <TextBlock Text=" | " Foreground="#CCC" Margin="10,0"/>
+                    <TextBlock Text="App Shell: V2 / JOB-READER-REWRITE" Foreground="#FF9800" FontSize="10" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="批量启用" Height="28" Padding="12,0" Margin="0,0,8,0" Background="#4CAF50" Foreground="White" BorderThickness="0"/>
+                    <Button Content="批量禁用" Height="28" Padding="12,0" Margin="0,0,8,0" Background="#FF9800" Foreground="White" BorderThickness="0"/>
+                    <Button Content="删除选中" Height="28" Padding="12,0" Background="#F44336" Foreground="White" BorderThickness="0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

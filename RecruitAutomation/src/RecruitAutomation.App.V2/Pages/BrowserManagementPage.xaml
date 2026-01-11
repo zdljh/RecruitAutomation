@@ -1,0 +1,55 @@
+<UserControl x:Class="RecruitAutomation.App.V2.Pages.BrowserManagementPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F5F5F5">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <Border Grid.Row="0" Background="White" Padding="20,15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock Text="浏览器管理" FontSize="22" FontWeight="Bold" Foreground="#333"/>
+                <TextBlock Text="App Shell: V2 / JOB-READER-REWRITE" Foreground="#FF9800" FontSize="11" Margin="0,3,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 操作按钮 -->
+        <Border Grid.Row="1" Background="White" Padding="20,12" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="➕ 添加账号" Height="32" Padding="15,0" Margin="0,0,10,0" Background="#4CAF50" Foreground="White" BorderThickness="0" Click="BtnAddAccount_Click"/>
+                <Button Content="🔄 刷新列表" Height="32" Padding="15,0" Margin="0,0,10,0" Background="#2196F3" Foreground="White" BorderThickness="0" Click="BtnRefresh_Click"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 账号列表 -->
+        <Border Grid.Row="2" Margin="15" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
+            <ListBox x:Name="lstAccounts" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Padding="15,10" BorderBrush="#EEE" BorderThickness="0,0,0,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding AccountId}" FontWeight="SemiBold" FontSize="14"/>
+                                    <TextBlock Text="{Binding Platform}" Foreground="#666" FontSize="12"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Content="启动" Padding="10,5" Margin="0,0,5,0" Background="#4CAF50" Foreground="White" BorderThickness="0"/>
+                                    <Button Content="停止" Padding="10,5" Background="#F44336" Foreground="White" BorderThickness="0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+    </Grid>
+</UserControl>

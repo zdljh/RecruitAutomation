@@ -1,0 +1,125 @@
+<Window x:Class="RecruitAutomation.App.LicenseWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="软件授权 - 招聘自动化系统" 
+        Height="680" Width="560"
+        MinHeight="600" MinWidth="500"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        Background="#F8F8F8">
+    
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,15">
+            <TextBlock Text="🔒 软件授权" 
+                       FontSize="24" 
+                       FontWeight="Bold" 
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="招聘自动化系统" 
+                       FontSize="14" 
+                       Foreground="#666"
+                       HorizontalAlignment="Center"
+                       Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- 授权状态提示 -->
+        <Border Grid.Row="1" 
+                x:Name="borderStatus"
+                Background="#FFF3CD" 
+                BorderBrush="#FFEEBA" 
+                BorderThickness="1" 
+                CornerRadius="5" 
+                Padding="12"
+                Margin="0,0,0,15">
+            <StackPanel>
+                <TextBlock x:Name="txtStatusTitle"
+                           Text="⚠ 未授权" 
+                           FontSize="14" 
+                           FontWeight="Bold" 
+                           Foreground="#856404"/>
+                <TextBlock x:Name="txtStatusMessage" 
+                           Text="请获取授权后使用完整功能" 
+                           Foreground="#856404" 
+                           Margin="0,3,0,0"
+                           TextWrapping="Wrap"
+                           FontSize="12"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 机器码 -->
+        <GroupBox Grid.Row="2" Header="您的机器码（发送给管理员获取授权码）" Padding="10" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBox x:Name="txtMachineCode" 
+                         Grid.Column="0"
+                         IsReadOnly="True"
+                         FontFamily="Consolas"
+                         FontSize="14"
+                         Padding="10"
+                         Background="#FAFAFA"
+                         VerticalContentAlignment="Center"/>
+                
+                <Button Grid.Column="1" 
+                        Content="复制" 
+                        Margin="10,0,0,0"
+                        Padding="20,10"
+                        Click="BtnCopyMachineCode_Click"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- 授权码输入 -->
+        <GroupBox Grid.Row="3" Header="粘贴授权码" Padding="10" Margin="0,0,0,12">
+            <TextBox x:Name="txtLicenseCode" 
+                     Height="100"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="11"
+                     Padding="10"
+                     Background="White"
+                     VerticalContentAlignment="Top"/>
+        </GroupBox>
+
+        <!-- License 信息 -->
+        <GroupBox Grid.Row="4" Header="授权信息" Padding="10" Margin="0,0,0,10"
+                  x:Name="grpLicenseInfo" Visibility="Collapsed">
+            <TextBox x:Name="txtLicenseInfo"
+                     IsReadOnly="True"
+                     TextWrapping="Wrap"
+                     FontSize="11"
+                     Padding="8"
+                     Background="#FAFAFA"
+                     Height="60"
+                     VerticalScrollBarVisibility="Auto"/>
+        </GroupBox>
+
+        <!-- 占位 -->
+        <Grid Grid.Row="5"/>
+
+        <!-- 操作按钮 -->
+        <Button Grid.Row="6" 
+                Content="激活授权" 
+                Padding="15,14"
+                Background="#4CAF50"
+                Foreground="White"
+                BorderThickness="0"
+                FontWeight="Bold"
+                FontSize="15"
+                Click="BtnActivate_Click"/>
+    </Grid>
+</Window>

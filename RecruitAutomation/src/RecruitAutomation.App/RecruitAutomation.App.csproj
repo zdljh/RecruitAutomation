@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>RecruitAutomation</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+    
+    <!-- 自定义 Main 入口点 -->
+    <StartupObject>RecruitAutomation.App.App</StartupObject>
+    
+    <!-- 禁用裁剪，确保所有 DLL 都包含 -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <TrimMode>link</TrimMode>
+    
+    <!-- 包含所有原生库 -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    
+    <!-- 确保 PDB 文件生成，便于调试 -->
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecruitAutomation.Core\RecruitAutomation.Core.csproj" />
+    <ProjectReference Include="..\RecruitAutomation.Browser\RecruitAutomation.Browser.csproj" />
+  </ItemGroup>
+
+  <!-- 【关键】App.xaml 作为 Page，因为我们使用自定义 Main -->
+  <ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+</Project>

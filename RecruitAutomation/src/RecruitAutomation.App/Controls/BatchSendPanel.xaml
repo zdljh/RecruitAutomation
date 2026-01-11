@@ -1,0 +1,254 @@
+<UserControl x:Class="RecruitAutomation.App.Controls.BatchSendPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="900">
+    
+    <UserControl.Resources>
+        <Style x:Key="CardBorder" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        <Style x:Key="StatCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="15"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="350"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧主区域 -->
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,15,0">
+            <StackPanel>
+                <!-- 账号选择和操作 -->
+                <Border Style="{StaticResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="选择账号：" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            <ComboBox x:Name="cmbAccounts" Width="200" Height="32" Margin="10,0,0,0"
+                                      SelectionChanged="CmbAccounts_SelectionChanged">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="8" Height="8" Fill="#4CAF50" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding DisplayName}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button Content="🔄 刷新" Height="32" Padding="10,0" Margin="10,0,0,0"
+                                    Click="BtnRefreshAccounts_Click"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,15,0,0">
+                            <Button x:Name="btnReadContacts" Content="📥 读取联系人" Height="32" Padding="15,0"
+                                    Background="#2196F3" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                    Click="BtnReadContacts_Click"/>
+                            <Button x:Name="btnStartBatchSend" Content="▶ 开始群发" Height="32" Padding="15,0" Margin="10,0,0,0"
+                                    Background="#4CAF50" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                    Click="BtnStartBatchSend_Click" IsEnabled="False"/>
+                            <Button x:Name="btnPauseBatchSend" Content="⏸ 暂停" Height="32" Padding="15,0" Margin="10,0,0,0"
+                                    Background="#FF9800" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                    Click="BtnPauseBatchSend_Click" Visibility="Collapsed"/>
+                            <Button x:Name="btnStopBatchSend" Content="⏹ 停止" Height="32" Padding="15,0" Margin="10,0,0,0"
+                                    Background="#F44336" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                    Click="BtnStopBatchSend_Click" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 群发配置 -->
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="群发配置" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Text="本次群发数量：" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <ComboBox x:Name="cmbSendCount" Width="100" Height="28">
+                                    <ComboBoxItem Content="10" Tag="10"/>
+                                    <ComboBoxItem Content="20" Tag="20" IsSelected="True"/>
+                                    <ComboBoxItem Content="50" Tag="50"/>
+                                    <ComboBoxItem Content="100" Tag="100"/>
+                                </ComboBox>
+                                <TextBlock Text="人" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#666"/>
+                            </StackPanel>
+                            
+                            <TextBlock Grid.Row="1" Text="发送间隔：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                <TextBox x:Name="txtInterval" Width="80" Text="3000"/>
+                                <TextBlock Text="毫秒（随机波动±50%）" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#666"/>
+                            </StackPanel>
+                            
+                            <TextBlock Grid.Row="2" Text="跳过规则：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,10,0,0">
+                                <CheckBox x:Name="chkSkipSentLimit" Content="已发送 ≥ 5 条消息的联系人" IsChecked="True"/>
+                                <CheckBox x:Name="chkSkipReplied" Content="对方已回复的联系人（转交AI智能回复）" IsChecked="True" Margin="0,5,0,0"/>
+                            </StackPanel>
+                            
+                            <TextBlock Grid.Row="3" Text="消息模板：" VerticalAlignment="Top" Margin="0,10,0,0"/>
+                            <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,10,0,0">
+                                <ComboBox x:Name="cmbTemplates" Height="28">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBox x:Name="txtTemplatePreview" Height="60" Margin="0,8,0,0" 
+                                         TextWrapping="Wrap" IsReadOnly="True" Background="#F5F5F5"
+                                         VerticalScrollBarVisibility="Auto"/>
+                                <TextBlock Text="支持变量: {姓名} {岗位名称} {公司名}" Foreground="#999" FontSize="11" Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- 执行状态 -->
+                <Border x:Name="statusPanel" Style="{StaticResource CardBorder}" Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock Text="执行状态" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel>
+                                <TextBlock x:Name="txtCurrentContact" Text="当前：-" FontSize="13"/>
+                                <TextBlock x:Name="txtDelayStatus" Text="" Foreground="#FF9800" FontSize="12" Margin="0,5,0,0"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                <TextBlock x:Name="txtProgress" Text="0/0" FontSize="18" FontWeight="Bold" Foreground="#2196F3"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <ProgressBar x:Name="progressBar" Height="8" Margin="0,15,0,0" 
+                                     Minimum="0" Maximum="100" Value="0"/>
+                        
+                        <!-- 警告提示 -->
+                        <Border x:Name="warningPanel" Background="#FFF3E0" CornerRadius="4" Padding="10" Margin="0,10,0,0" Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚠️" FontSize="16"/>
+                                <TextBlock x:Name="txtWarning" Text="检测到频繁操作警告，已自动降速" Margin="8,0,0,0" Foreground="#E65100"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- 统计信息 -->
+                <UniformGrid Columns="4" Margin="0,0,0,15">
+                    <Border Style="{StaticResource StatCard}" Margin="0,0,8,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock x:Name="txtStatTarget" Text="0" FontSize="24" FontWeight="Bold" Foreground="#2196F3" HorizontalAlignment="Center"/>
+                            <TextBlock Text="目标数量" Foreground="#999" FontSize="12" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatCard}" Margin="4,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock x:Name="txtStatSent" Text="0" FontSize="24" FontWeight="Bold" Foreground="#4CAF50" HorizontalAlignment="Center"/>
+                            <TextBlock Text="已发送" Foreground="#999" FontSize="12" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatCard}" Margin="4,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock x:Name="txtStatSkipped" Text="0" FontSize="24" FontWeight="Bold" Foreground="#FF9800" HorizontalAlignment="Center"/>
+                            <TextBlock Text="已跳过" Foreground="#999" FontSize="12" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource StatCard}" Margin="8,0,0,0">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock x:Name="txtStatEligible" Text="0" FontSize="24" FontWeight="Bold" Foreground="#9C27B0" HorizontalAlignment="Center"/>
+                            <TextBlock Text="可群发" Foreground="#999" FontSize="12" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- 跳过原因统计 -->
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="跳过原因统计" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock x:Name="txtSkipSentLimit" Text="0" FontSize="20" FontWeight="Bold" Foreground="#F44336" HorizontalAlignment="Center"/>
+                                <TextBlock Text="发送≥5条" Foreground="#999" FontSize="11" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                <TextBlock x:Name="txtSkipReplied" Text="0" FontSize="20" FontWeight="Bold" Foreground="#4CAF50" HorizontalAlignment="Center"/>
+                                <TextBlock Text="已回复" Foreground="#999" FontSize="11" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                <TextBlock x:Name="txtSkipSystem" Text="0" FontSize="20" FontWeight="Bold" Foreground="#9E9E9E" HorizontalAlignment="Center"/>
+                                <TextBlock Text="系统标记" Foreground="#999" FontSize="11" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 右侧日志区域 -->
+        <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="实时日志" FontSize="14" FontWeight="SemiBold"/>
+                    <Button Content="清空" Padding="8,2" Margin="15,0,0,0" FontSize="11"
+                            Background="Transparent" BorderThickness="1" BorderBrush="#DDD"
+                            Click="BtnClearLogs_Click"/>
+                </StackPanel>
+                
+                <ListBox x:Name="lstLogs" Grid.Row="1" BorderThickness="0" 
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,3">
+                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="12"/>
+                                <TextBlock Text="{Binding Time}" Foreground="#999" FontSize="10"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                
+                <TextBlock Grid.Row="2" x:Name="txtLogCount" Text="共 0 条日志" Foreground="#999" FontSize="11" Margin="0,10,0,0"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

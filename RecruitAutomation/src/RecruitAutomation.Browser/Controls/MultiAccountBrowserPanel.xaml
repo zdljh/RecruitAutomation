@@ -1,0 +1,62 @@
+<UserControl x:Class="RecruitAutomation.Browser.Controls.MultiAccountBrowserPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="900">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 账号标签栏 -->
+        <Border Grid.Row="0" Background="#E0E0E0" Padding="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 标签页列表 -->
+                <ScrollViewer Grid.Column="0" 
+                              HorizontalScrollBarVisibility="Auto" 
+                              VerticalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="tabsPanel" Orientation="Horizontal"/>
+                </ScrollViewer>
+
+                <!-- 操作按钮 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0">
+                    <TextBlock x:Name="txtAccountCount" 
+                               Text="0/5" 
+                               VerticalAlignment="Center"
+                               Foreground="#666"
+                               Margin="0,0,10,0"/>
+                    <Button Content="＋ 添加账号" 
+                            Padding="10,5"
+                            Click="BtnAddAccount_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 浏览器内容区域 -->
+        <Grid Grid.Row="1" x:Name="contentArea" Background="#F5F5F5">
+            <!-- 无账号时的提示 -->
+            <StackPanel x:Name="emptyHint" 
+                        VerticalAlignment="Center" 
+                        HorizontalAlignment="Center">
+                <TextBlock Text="暂无运行中的账号" 
+                           FontSize="18" 
+                           Foreground="#999"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="点击「添加账号」开始使用" 
+                           FontSize="13" 
+                           Foreground="#BBB"
+                           HorizontalAlignment="Center"
+                           Margin="0,10,0,0"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

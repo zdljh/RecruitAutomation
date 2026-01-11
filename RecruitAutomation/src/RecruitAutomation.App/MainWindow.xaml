@@ -1,0 +1,1155 @@
+<Window x:Class="RecruitAutomation.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:RecruitAutomation.App.Controls"
+        Title="招聘自动化系统" 
+        Height="750" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        MinHeight="600" MinWidth="1000"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+    
+    <Window.Resources>
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FFFFFFCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFFFFF22"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="NavButtonActive" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Setter Property="Background" Value="#FFFFFF33"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style x:Key="SettingCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧导航栏 -->
+        <Border Grid.Column="0" Background="#2C3E50">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Logo区域 -->
+                <Border Grid.Row="0" Padding="15" BorderBrush="#FFFFFF22" BorderThickness="0,0,0,1">
+                    <StackPanel>
+                        <TextBlock Text="📋 招聘自动化" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Border Background="#27AE60" CornerRadius="3" Padding="6,2">
+                                <TextBlock x:Name="txtLicenseType" Text="专业版" Foreground="White" FontSize="11"/>
+                            </Border>
+                            <TextBlock x:Name="txtExpireDays" Text="剩余30天" Foreground="#FFFFFF99" 
+                                       FontSize="11" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 导航菜单 -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,10">
+                        <TextBlock Text="工作台" Foreground="#FFFFFF66" FontSize="11" Margin="15,5,0,5"/>
+                        <Button x:Name="btnDashboard" Content="📊 数据概览" Style="{StaticResource NavButtonActive}" Click="NavButton_Click" Tag="Dashboard"/>
+                        <Button x:Name="btnAccounts" Content="👤 账号管理" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Accounts" Visibility="Collapsed"/>
+                        
+                        <TextBlock Text="招聘功能" Foreground="#FFFFFF66" FontSize="11" Margin="15,15,0,5"/>
+                        <Button x:Name="btnJobs" Content="📝 岗位管理" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Jobs"/>
+                        <Button x:Name="btnCandidates" Content="👥 候选人库" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Candidates"/>
+                        <Button x:Name="btnMessages" Content="💬 消息中心" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Messages"/>
+                        
+                        <TextBlock Text="自动化" Foreground="#FFFFFF66" FontSize="11" Margin="15,15,0,5"/>
+                        <Button x:Name="btnAutoGreet" Content="🤖 自动打招呼" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="AutoGreet"/>
+                        <Button x:Name="btnAutoReply" Content="💡 智能回复" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="AutoReply"/>
+                        <Button x:Name="btnBatchSend" Content="📨 群发联系人" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="BatchSend"/>
+                        <Button x:Name="btnActivity" Content="⚡ 活跃度维护" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Activity"/>
+                        
+                        <TextBlock Text="设置" Foreground="#FFFFFF66" FontSize="11" Margin="15,15,0,5"/>
+                        <Button x:Name="btnFilter" Content="🎯 筛选规则" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Filter"/>
+                        <Button x:Name="btnAI" Content="🧠 AI配置" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="AI"/>
+                        <Button x:Name="btnSettings" Content="⚙️ 系统设置" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="Settings"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- 底部信息 -->
+                <Border Grid.Row="2" Padding="15" BorderBrush="#FFFFFF22" BorderThickness="0,1,0,0">
+                    <StackPanel>
+                        <Button Content="📄 授权信息" Style="{StaticResource NavButton}" Padding="0,5" Click="BtnLicenseInfo_Click"/>
+                        <TextBlock x:Name="txtVersion" Text="v1.0.0" Foreground="#FFFFFF66" FontSize="10" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 右侧内容区 -->
+        <Grid Grid.Column="1" Background="#F0F2F5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 顶部工具栏 -->
+            <Border Grid.Row="0" Background="White" Padding="20,15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock x:Name="txtPageTitle" Text="数据概览" FontSize="20" FontWeight="SemiBold" Foreground="#333"/>
+                        <TextBlock x:Name="txtPageDesc" Text="查看招聘数据统计和今日工作概况" FontSize="12" Foreground="#999" Margin="0,3,0,0"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border x:Name="statusIndicator" Width="10" Height="10" CornerRadius="5" Background="#27AE60" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="txtActivityStatus" Text="活跃中" Foreground="#666" Margin="8,0,20,0" VerticalAlignment="Center"/>
+                        <Button x:Name="btnStartStop" Content="▶ 启动" Padding="15,8" Background="#3498DB" Foreground="White" 
+                                BorderThickness="0" Cursor="Hand" Click="BtnStartStop_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 主内容区域 -->
+            <Grid Grid.Row="1" x:Name="contentArea" Margin="20">
+                <!-- 默认显示数据概览 -->
+                <Grid x:Name="panelDashboard">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 统计卡片 -->
+                    <UniformGrid Grid.Row="0" Columns="4" Margin="0,0,0,20">
+                        <Border Background="White" CornerRadius="8" Margin="0,0,10,0" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="今日打招呼" Foreground="#999" FontSize="12"/>
+                                <TextBlock x:Name="txtTodayGreet" Text="0" FontSize="28" FontWeight="Bold" Foreground="#3498DB" Margin="0,5,0,0"/>
+                                <TextBlock Text="目标: 100" Foreground="#999" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="White" CornerRadius="8" Margin="5,0" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="收到回复" Foreground="#999" FontSize="12"/>
+                                <TextBlock x:Name="txtTodayReply" Text="0" FontSize="28" FontWeight="Bold" Foreground="#27AE60" Margin="0,5,0,0"/>
+                                <TextBlock Text="回复率: 0%" Foreground="#999" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="White" CornerRadius="8" Margin="5,0" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="新增候选人" Foreground="#999" FontSize="12"/>
+                                <TextBlock x:Name="txtTodayCandidate" Text="0" FontSize="28" FontWeight="Bold" Foreground="#9B59B6" Margin="0,5,0,0"/>
+                                <TextBlock Text="通过筛选: 0" Foreground="#999" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="White" CornerRadius="8" Margin="10,0,0,0" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="岗位刷新" Foreground="#999" FontSize="12"/>
+                                <TextBlock x:Name="txtTodayRefresh" Text="0" FontSize="28" FontWeight="Bold" Foreground="#E67E22" Margin="0,5,0,0"/>
+                                <TextBlock Text="在线岗位: 0" Foreground="#999" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <!-- 下方内容 -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="350"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 账号列表 -->
+                        <Border Grid.Column="0" Background="White" CornerRadius="8" Margin="0,0,10,0" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+                                    <TextBlock Text="账号状态" FontSize="16" FontWeight="SemiBold"/>
+                                    <Button Content="+ 添加账号" Margin="15,0,0,0" Padding="10,5" Background="#3498DB" 
+                                            Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnAddAccount_Click"/>
+                                </StackPanel>
+                                <ListBox x:Name="lstAccounts" Grid.Row="1" BorderThickness="0" HorizontalContentAlignment="Stretch">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="10" BorderBrush="#EEE" BorderThickness="0,0,0,1" Background="{Binding RowBackground}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Ellipse Grid.Column="0" Width="40" Height="40" Fill="{Binding AvatarColor}"/>
+                                                    <StackPanel Grid.Column="1" Margin="12,0">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding Platform}" Foreground="#999" FontSize="12"/>
+                                                    </StackPanel>
+                                                    <Border Grid.Column="2" Background="{Binding StatusBackground}" CornerRadius="3" Padding="8,3" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                        <TextBlock Text="{Binding Status}" Foreground="{Binding StatusForeground}" FontSize="11"/>
+                                                    </Border>
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button Content="{Binding OnlineButtonText}" Width="50" Padding="5,3" Margin="0,0,5,0"
+                                                                Background="{Binding OnlineButtonBackground}" Foreground="White" BorderThickness="0" 
+                                                                FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                                Visibility="{Binding OnlineButtonVisibility}"
+                                                                Click="BtnOnlineAccount_Click"/>
+                                                        <Button Content="{Binding ToggleButtonText}" Width="50" Padding="5,3" Margin="0,0,5,0"
+                                                                Background="{Binding ToggleButtonBackground}" Foreground="White" BorderThickness="0" 
+                                                                FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                                Visibility="{Binding ToggleButtonVisibility}"
+                                                                Click="BtnToggleAccount_Click"/>
+                                                        <Button Content="删除" Width="50" Padding="5,3" 
+                                                                Background="#E74C3C" Foreground="White" BorderThickness="0" 
+                                                                FontSize="11" Cursor="Hand" Tag="{Binding}"
+                                                                Click="BtnDeleteAccount_Click"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+
+                        <!-- 操作日志 -->
+                        <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="操作日志" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                <ListBox x:Name="lstLogs" Grid.Row="1" BorderThickness="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,5">
+                                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Time}" Foreground="#999" FontSize="11"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!-- 其他面板（默认隐藏） -->
+                <Grid x:Name="panelAccounts" Visibility="Collapsed"/>
+
+                <!-- 岗位管理面板 -->
+                <Grid x:Name="panelJobs" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 顶部工具栏 -->
+                    <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 账号选择 -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="选择账号：" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                                <ComboBox x:Name="cmbJobAccounts" Width="220" Height="32"
+                                          SelectionChanged="CmbJobAccounts_SelectionChanged">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+                                                    <Ellipse.Style>
+                                                        <Style TargetType="Ellipse">
+                                                            <Setter Property="Fill" Value="Gray"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsAvailable}" Value="True">
+                                                                    <Setter Property="Fill" Value="#4CAF50"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Ellipse.Style>
+                                                </Ellipse>
+                                                <TextBlock Text="{Binding DisplayName}"/>
+                                                <TextBlock Text=" - " Foreground="Gray"/>
+                                                <TextBlock Text="{Binding PlatformName}" Foreground="Gray"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Content="🔄" Width="32" Height="32" Margin="5,0,0,0"
+                                        ToolTip="刷新账号列表" Click="BtnRefreshJobAccounts_Click"/>
+                            </StackPanel>
+
+                            <!-- 操作按钮 -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button x:Name="btnFetchJobs" Content="📥 读取岗位" Height="32" Padding="15,0"
+                                        Background="#2196F3" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                        Click="BtnFetchJobs_Click" IsEnabled="False"/>
+                                <Button x:Name="btnFetchAllJobs" Content="📥 读取全部账号" Height="32" Padding="15,0" Margin="10,0,0,0"
+                                        Background="#4CAF50" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                        Click="BtnFetchAllJobs_Click"/>
+                                <Button x:Name="btnCancelFetch" Content="⏹ 取消" Height="32" Padding="15,0" Margin="10,0,0,0"
+                                        Background="#F44336" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                        Click="BtnCancelFetch_Click" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- 状态提示 -->
+                    <Border Grid.Row="1" x:Name="jobStatusBar" Background="#E3F2FD" CornerRadius="8" Padding="15,10" Margin="0,0,0,15" Visibility="Collapsed">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="txtJobStatus" Text="正在读取岗位..." VerticalAlignment="Center"/>
+                            <ProgressBar Grid.Column="1" x:Name="jobProgressBar" Width="200" Height="8" 
+                                         Minimum="0" Maximum="100" Value="0"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 岗位列表 -->
+                    <Border Grid.Row="2" Background="White" CornerRadius="8">
+                        <DataGrid x:Name="dgJobs" Margin="1"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Extended" SelectionUnit="FullRow"
+                                  CanUserAddRows="False" CanUserDeleteRows="False"
+                                  GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                                  Background="White" BorderThickness="0"
+                                  RowHeight="45" SelectionChanged="DgJobs_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Width="40">
+                                    <DataGridTemplateColumn.Header>
+                                        <CheckBox x:Name="chkSelectAllJobs" Click="ChkSelectAllJobs_Click"/>
+                                    </DataGridTemplateColumn.Header>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      HorizontalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="平台" Binding="{Binding PlatformName}" Width="80"/>
+                                <DataGridTextColumn Header="岗位名称" Binding="{Binding Title}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="薪资" Binding="{Binding SalaryText}" Width="100"/>
+                                <DataGridTextColumn Header="工作地点" Binding="{Binding Location}" Width="100"/>
+                                <DataGridTextColumn Header="经验" Binding="{Binding ExperienceRequired}" Width="80"/>
+                                <DataGridTextColumn Header="学历" Binding="{Binding EducationRequired}" Width="80"/>
+                                <DataGridTemplateColumn Header="状态" Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#E8F5E9" CornerRadius="3" Padding="5,2">
+                                                <TextBlock Text="开放中" Foreground="#4CAF50" FontSize="12" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="自动化" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding AutomationEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      Click="JobAutomationToggle_Click" HorizontalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="执行状态" Binding="{Binding ExecutionStatusText}" Width="80"/>
+                                <DataGridTemplateColumn Header="匹配进度" Width="90">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock HorizontalAlignment="Center">
+                                                <Run Text="{Binding MatchedCount}"/><Run Text="/"/><Run Text="{Binding TargetMatchCount}"/>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="读取时间" Binding="{Binding FetchedAtText}" Width="120"/>
+                            </DataGrid.Columns>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#E3F2FD"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F5F5F5"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- 底部统计和操作 -->
+                    <Border Grid.Row="3" Background="White" CornerRadius="8" Padding="15" Margin="0,15,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="txtJobStats" Text="共 0 个岗位" VerticalAlignment="Center"/>
+                                <TextBlock Text=" | " Foreground="Gray" VerticalAlignment="Center" Margin="10,0"/>
+                                <TextBlock x:Name="txtJobSelectedStats" Text="已选择 0 个" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="批量启用自动化" Height="30" Padding="15,0" Margin="0,0,10,0"
+                                        Background="#4CAF50" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                        Click="BtnBatchEnableAutomation_Click"/>
+                                <Button Content="批量禁用自动化" Height="30" Padding="15,0" Margin="0,0,10,0"
+                                        Background="#FF9800" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                        Click="BtnBatchDisableAutomation_Click"/>
+                                <Button Content="删除选中" Height="30" Padding="15,0"
+                                        Background="#F44336" Foreground="White" BorderThickness="0" Cursor="Hand"
+                                        Click="BtnDeleteSelectedJobs_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- 候选人库面板 -->
+                <Grid x:Name="panelCandidates" Visibility="Collapsed">
+                    <Border Background="White" CornerRadius="8" Padding="20">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="👥" FontSize="48" HorizontalAlignment="Center"/>
+                            <TextBlock Text="候选人库" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,5"/>
+                            <TextBlock Text="自动采集的候选人信息将在此显示" Foreground="#999" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- 消息中心面板 -->
+                <Grid x:Name="panelMessages" Visibility="Collapsed">
+                    <Border Background="White" CornerRadius="8" Padding="20">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="💬" FontSize="48" HorizontalAlignment="Center"/>
+                            <TextBlock Text="消息中心" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,5"/>
+                            <TextBlock Text="与候选人的沟通记录将在此显示" Foreground="#999" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- 自动打招呼面板 -->
+                <Grid x:Name="panelAutoGreet" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- 开关和状态 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="自动打招呼" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock Text="根据筛选规则自动向符合条件的候选人发送招呼消息" Foreground="#999" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="chkAutoGreetEnabled" Grid.Column="1" Content="启用" VerticalAlignment="Center"
+                                              Checked="ChkAutoGreetEnabled_Changed" Unchecked="ChkAutoGreetEnabled_Changed"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 打招呼配置 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="打招呼设置" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="最低匹配分数：" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBox x:Name="txtAutoGreetScore" Width="80" Text="70"/>
+                                            <TextBlock Text="分（达到此分数自动打招呼）" Foreground="#999" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="每日上限：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtDailyGreetLimit" Width="80" Text="100"/>
+                                            <TextBlock Text="次/天" Foreground="#999" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="2" Text="发送间隔：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtGreetInterval" Width="80" Text="3000"/>
+                                            <TextBlock Text="毫秒" Foreground="#999" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 打招呼模板 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                                        <TextBlock Text="打招呼模板" FontSize="14" FontWeight="SemiBold"/>
+                                        <Button Content="+ 添加模板" Margin="15,0,0,0" Padding="10,3" Background="#3498DB" 
+                                                Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnAddGreetTemplate_Click"/>
+                                    </StackPanel>
+                                    <ListBox x:Name="lstGreetTemplates" BorderThickness="1" BorderBrush="#E0E0E0" MaxHeight="200">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding Content}" Foreground="#666" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="1" Content="删除" Padding="8,3" Background="#E74C3C" 
+                                                            Foreground="White" BorderThickness="0" FontSize="11" Cursor="Hand"
+                                                            Tag="{Binding}" Click="BtnDeleteGreetTemplate_Click"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                    <TextBlock Text="支持变量: {name}=候选人姓名, {position}=岗位名称, {company}=公司名称" 
+                                               Foreground="#999" FontSize="11" Margin="0,10,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="保存设置" HorizontalAlignment="Right" Padding="20,8" Background="#3498DB" 
+                                    Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnSaveAutoGreetSettings_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- 智能回复面板 -->
+                <Grid x:Name="panelAutoReply" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- 开关和状态 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="智能回复" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock Text="根据关键词规则自动回复候选人消息" Foreground="#999" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="chkAutoReplyEnabled" Grid.Column="1" Content="启用" VerticalAlignment="Center"
+                                              Checked="ChkAutoReplyEnabled_Changed" Unchecked="ChkAutoReplyEnabled_Changed"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 关键词规则 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                                        <TextBlock Text="关键词回复规则" FontSize="14" FontWeight="SemiBold"/>
+                                        <Button Content="+ 添加规则" Margin="15,0,0,0" Padding="10,3" Background="#3498DB" 
+                                                Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnAddKeywordRule_Click"/>
+                                    </StackPanel>
+                                    <DataGrid x:Name="dgKeywordRules" AutoGenerateColumns="False" IsReadOnly="True"
+                                              CanUserAddRows="False" BorderThickness="1" BorderBrush="#E0E0E0" MaxHeight="250">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="规则名称" Binding="{Binding Name}" Width="100"/>
+                                            <DataGridTextColumn Header="触发关键词" Binding="{Binding KeywordsText}" Width="150"/>
+                                            <DataGridTextColumn Header="回复内容" Binding="{Binding Reply}" Width="*"/>
+                                            <DataGridTextColumn Header="优先级" Binding="{Binding Priority}" Width="60"/>
+                                            <DataGridCheckBoxColumn Header="启用" Binding="{Binding Enabled}" Width="50"/>
+                                            <DataGridTemplateColumn Header="操作" Width="80">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Button Content="编辑" Padding="5,2" Background="#3498DB" Foreground="White" 
+                                                                    BorderThickness="0" FontSize="11" Cursor="Hand" Margin="0,0,5,0"
+                                                                    Tag="{Binding}" Click="BtnEditKeywordRule_Click"/>
+                                                            <Button Content="删" Padding="5,2" Background="#E74C3C" Foreground="White" 
+                                                                    BorderThickness="0" FontSize="11" Cursor="Hand"
+                                                                    Tag="{Binding}" Click="BtnDeleteKeywordRule_Click"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 跟进设置 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                                        <TextBlock Text="自动跟进" FontSize="14" FontWeight="SemiBold"/>
+                                        <CheckBox x:Name="chkFollowUpEnabled" Content="启用" Margin="15,0,0,0" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="最大跟进次数：" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="txtMaxFollowUp" Grid.Column="1" Width="80" Text="3" HorizontalAlignment="Left"/>
+                                        <TextBlock Grid.Row="1" Text="首次跟进间隔：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtFirstFollowUpHours" Width="80" Text="24"/>
+                                            <TextBlock Text="小时" Foreground="#999" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="2" Text="后续跟进间隔：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtSubsequentFollowUpHours" Width="80" Text="48"/>
+                                            <TextBlock Text="小时" Foreground="#999" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="保存设置" HorizontalAlignment="Right" Padding="20,8" Background="#3498DB" 
+                                    Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnSaveAutoReplySettings_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- 活跃度维护面板 -->
+                <Grid x:Name="panelActivity" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- 开关和状态 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="活跃度维护" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock Text="自动执行刷新岗位、浏览简历等操作保持账号活跃" Foreground="#999" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="chkActivityEnabled" Grid.Column="1" Content="启用" VerticalAlignment="Center"
+                                              Checked="ChkActivityEnabled_Changed" Unchecked="ChkActivityEnabled_Changed"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 活跃时间段 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="活跃时间段" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="工作时间：" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBox x:Name="txtActiveStartHour" Width="50" Text="9"/>
+                                            <TextBlock Text="点 至" VerticalAlignment="Center" Margin="5,0"/>
+                                            <TextBox x:Name="txtActiveEndHour" Width="50" Text="21"/>
+                                            <TextBlock Text="点" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="午休时间：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtLunchStartHour" Width="50" Text="12"/>
+                                            <TextBlock Text="点 至" VerticalAlignment="Center" Margin="5,0"/>
+                                            <TextBox x:Name="txtLunchEndHour" Width="50" Text="14"/>
+                                            <TextBlock Text="点" VerticalAlignment="Center" Margin="5,0,15,0"/>
+                                            <CheckBox x:Name="chkSkipLunch" Content="跳过午休" IsChecked="True"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="2" Text="工作日：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <CheckBox x:Name="chkWorkDay1" Content="周一" IsChecked="True" Margin="0,0,10,0"/>
+                                            <CheckBox x:Name="chkWorkDay2" Content="周二" IsChecked="True" Margin="0,0,10,0"/>
+                                            <CheckBox x:Name="chkWorkDay3" Content="周三" IsChecked="True" Margin="0,0,10,0"/>
+                                            <CheckBox x:Name="chkWorkDay4" Content="周四" IsChecked="True" Margin="0,0,10,0"/>
+                                            <CheckBox x:Name="chkWorkDay5" Content="周五" IsChecked="True" Margin="0,0,10,0"/>
+                                            <CheckBox x:Name="chkWorkDay6" Content="周六" Margin="0,0,10,0"/>
+                                            <CheckBox x:Name="chkWorkDay0" Content="周日"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 岗位刷新 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                                        <TextBlock Text="岗位刷新" FontSize="14" FontWeight="SemiBold"/>
+                                        <CheckBox x:Name="chkJobRefreshEnabled" Content="启用" Margin="15,0,0,0" IsChecked="True" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="刷新间隔：" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="txtJobRefreshInterval" Width="60" Text="4"/>
+                                        <TextBlock Text="小时" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 简历浏览 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                                        <TextBlock Text="简历浏览" FontSize="14" FontWeight="SemiBold"/>
+                                        <CheckBox x:Name="chkResumeBrowseEnabled" Content="启用" Margin="15,0,0,0" IsChecked="True" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="每次浏览：" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBox x:Name="txtResumeBrowseCount" Width="60" Text="20"/>
+                                            <TextBlock Text="份简历" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="浏览间隔：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtResumeBrowseInterval" Width="60" Text="30"/>
+                                            <TextBlock Text="分钟" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 今日统计 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="今日活跃统计" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <UniformGrid Columns="4">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock x:Name="txtActivityJobRefresh" Text="0" FontSize="24" FontWeight="Bold" Foreground="#3498DB" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="岗位刷新" Foreground="#999" FontSize="12" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock x:Name="txtActivityResumeBrowse" Text="0" FontSize="24" FontWeight="Bold" Foreground="#27AE60" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="简历浏览" Foreground="#999" FontSize="12" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock x:Name="txtActivityMessageCheck" Text="0" FontSize="24" FontWeight="Bold" Foreground="#9B59B6" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="消息检查" Foreground="#999" FontSize="12" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock x:Name="txtActivityGreetSent" Text="0" FontSize="24" FontWeight="Bold" Foreground="#E67E22" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="打招呼" Foreground="#999" FontSize="12" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="保存设置" HorizontalAlignment="Right" Padding="20,8" Background="#3498DB" 
+                                    Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnSaveActivitySettings_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- 筛选规则面板 -->
+                <Grid x:Name="panelFilter" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- 基本条件 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="基本筛选条件" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="工作年限：" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBox x:Name="txtMinWorkYears" Width="60" Text="1"/>
+                                            <TextBlock Text="至" VerticalAlignment="Center" Margin="5,0"/>
+                                            <TextBox x:Name="txtMaxWorkYears" Width="60" Text="10"/>
+                                            <TextBlock Text="年" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="年龄范围：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtMinAge" Width="60" Text="22"/>
+                                            <TextBlock Text="至" VerticalAlignment="Center" Margin="5,0"/>
+                                            <TextBox x:Name="txtMaxAge" Width="60" Text="35"/>
+                                            <TextBlock Text="岁" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="2" Text="最低学历：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <ComboBox x:Name="cmbMinEducation" Grid.Row="2" Grid.Column="1" Width="120" HorizontalAlignment="Left" Margin="0,10,0,0">
+                                            <ComboBoxItem Content="不限"/>
+                                            <ComboBoxItem Content="大专"/>
+                                            <ComboBoxItem Content="本科" IsSelected="True"/>
+                                            <ComboBoxItem Content="硕士"/>
+                                            <ComboBoxItem Content="博士"/>
+                                        </ComboBox>
+                                        <TextBlock Grid.Row="3" Text="薪资上限：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtMaxSalary" Width="80" Text="30"/>
+                                            <TextBlock Text="K（期望薪资超过此值不通过）" Foreground="#999" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 学校要求 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="学校要求" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkRequire985" Content="985院校" Margin="0,0,20,0"/>
+                                        <CheckBox x:Name="chkRequire211" Content="211院校" Margin="0,0,20,0"/>
+                                        <CheckBox x:Name="chkRequireDoubleFirstClass" Content="双一流" Margin="0,0,20,0"/>
+                                        <CheckBox x:Name="chkRequireQS300" Content="QS300"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="chkTopSchoolAnyMatch" Content="满足任一即可（否则需全部满足）" Margin="0,10,0,0" IsChecked="True"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 技能关键词 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="技能关键词" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="必须技能：" VerticalAlignment="Top"/>
+                                        <TextBox x:Name="txtRequiredSkills" Grid.Column="1" Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                                                 Text="Java,Spring"/>
+                                        <TextBlock Grid.Row="1" Text="加分技能：" VerticalAlignment="Top" Margin="0,10,0,0"/>
+                                        <TextBox x:Name="txtPreferredSkills" Grid.Row="1" Grid.Column="1" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,10,0,0"
+                                                 Text="微服务,Docker,Kubernetes"/>
+                                        <TextBlock Grid.Row="2" Text="排除关键词：" VerticalAlignment="Top" Margin="0,10,0,0"/>
+                                        <TextBox x:Name="txtExcludeKeywords" Grid.Row="2" Grid.Column="1" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,10,0,0"
+                                                 Text="实习,兼职"/>
+                                    </Grid>
+                                    <TextBlock Text="多个关键词用逗号分隔" Foreground="#999" FontSize="11" Margin="0,10,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 评分权重 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="评分权重配置" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="学历权重：" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="txtEducationWeight" Grid.Column="1" Width="60" Text="0.2" HorizontalAlignment="Left"/>
+                                        <TextBlock Grid.Column="2" Text="经验权重：" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="txtExperienceWeight" Grid.Column="3" Width="60" Text="0.3" HorizontalAlignment="Left"/>
+                                        <TextBlock Grid.Row="1" Text="技能权重：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <TextBox x:Name="txtSkillWeight" Grid.Row="1" Grid.Column="1" Width="60" Text="0.25" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="2" Text="活跃度权重：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <TextBox x:Name="txtActivityWeight" Grid.Row="1" Grid.Column="3" Width="60" Text="0.15" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                                        <TextBlock Grid.Row="2" Text="名校权重：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <TextBox x:Name="txtTopSchoolWeight" Grid.Row="2" Grid.Column="1" Width="60" Text="0.1" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 通过阈值 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="通过阈值" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="通过分数线：" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBox x:Name="txtPassScore" Width="60" Text="60"/>
+                                            <TextBlock Text="分（低于此分数不通过筛选）" Foreground="#999" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="自动打招呼线：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtAutoGreetScoreFilter" Width="60" Text="70"/>
+                                            <TextBlock Text="分（达到此分数自动打招呼）" Foreground="#999" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="保存筛选规则" HorizontalAlignment="Right" Padding="20,8" Background="#3498DB" 
+                                    Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnSaveFilterSettings_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- AI配置面板 -->
+                <Grid x:Name="panelAI" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- 开关和状态 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="AI智能回复" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock Text="使用AI大模型生成智能回复内容" Foreground="#999" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="chkAIEnabled" Grid.Column="1" Content="启用" VerticalAlignment="Center"
+                                              Checked="ChkAIEnabled_Changed" Unchecked="ChkAIEnabled_Changed"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- AI提供商选择 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="AI提供商" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="rbAITongyi" Content="通义千问" GroupName="AIProvider" IsChecked="True" Margin="0,0,20,0"/>
+                                        <RadioButton x:Name="rbAIWenxin" Content="文心一言" GroupName="AIProvider" Margin="0,0,20,0"/>
+                                        <RadioButton x:Name="rbAIZhipu" Content="智谱AI" GroupName="AIProvider" Margin="0,0,20,0"/>
+                                        <RadioButton x:Name="rbAIXunfei" Content="讯飞星火" GroupName="AIProvider"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- API配置 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="API配置" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="API Key：" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="txtAIApiKey" Grid.Column="1"/>
+                                        <TextBlock Grid.Row="1" Text="API地址：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <TextBox x:Name="txtAIApiUrl" Grid.Row="1" Grid.Column="1" Margin="0,10,0,0"/>
+                                        <TextBlock Grid.Row="2" Text="模型名称：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <TextBox x:Name="txtAIModel" Grid.Row="2" Grid.Column="1" Text="qwen-turbo" Margin="0,10,0,0"/>
+                                    </Grid>
+                                    <Button Content="测试连接" Margin="0,15,0,0" Padding="15,5" Background="#27AE60" 
+                                            Foreground="White" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Left"
+                                            Click="BtnTestAIConnection_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 生成参数 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="生成参数" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="温度：" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBox x:Name="txtAITemperature" Width="60" Text="0.7"/>
+                                            <TextBlock Text="（0-1，越高越随机）" Foreground="#999" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="最大Token：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <TextBox x:Name="txtAIMaxTokens" Grid.Row="1" Grid.Column="1" Width="80" Text="500" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                                        <TextBlock Grid.Row="2" Text="历史消息数：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtAIMaxHistory" Width="60" Text="10"/>
+                                            <TextBlock Text="条（用于上下文理解）" Foreground="#999" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 系统提示词 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="系统提示词" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <TextBox x:Name="txtAISystemPrompt" Height="120" TextWrapping="Wrap" AcceptsReturn="True"
+                                             Text="你是一名专业的HR招聘助手，正在与求职者沟通。请根据岗位要求和候选人情况，用专业、友好的语气回复消息。回复要简洁有效，不要过于冗长。"/>
+                                    <TextBlock Text="支持变量: {job_title}=岗位名称, {job_desc}=岗位描述, {candidate_name}=候选人姓名" 
+                                               Foreground="#999" FontSize="11" Margin="0,10,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="保存AI配置" HorizontalAlignment="Right" Padding="20,8" Background="#3498DB" 
+                                    Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnSaveAISettings_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- 群发联系人面板 - 动态加载，避免启动时加载 CefSharp -->
+                <Grid x:Name="panelBatchSend" Visibility="Collapsed">
+                    <ContentControl x:Name="batchSendContainer"/>
+                </Grid>
+
+                <!-- 系统设置面板 -->
+                <Grid x:Name="panelSettings" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <!-- 数据管理 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="数据管理" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="导出数据" Padding="15,8" Background="#3498DB" Foreground="White" 
+                                                BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnExportData_Click"/>
+                                        <Button Content="导入数据" Padding="15,8" Background="#27AE60" Foreground="White" 
+                                                BorderThickness="0" Cursor="Hand" Margin="0,0,10,0" Click="BtnImportData_Click"/>
+                                        <Button Content="清空缓存" Padding="15,8" Background="#E67E22" Foreground="White" 
+                                                BorderThickness="0" Cursor="Hand" Click="BtnClearCache_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 浏览器设置 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="浏览器设置" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="页面加载超时：" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <TextBox x:Name="txtPageLoadTimeout" Width="60" Text="30"/>
+                                            <TextBlock Text="秒" Foreground="#999" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="1" Text="操作间隔：" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
+                                            <TextBox x:Name="txtOperationInterval" Width="60" Text="1000"/>
+                                            <TextBlock Text="毫秒（模拟人工操作）" Foreground="#999" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 日志设置 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="日志设置" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="chkEnableDetailLog" Content="启用详细日志" IsChecked="True" Margin="0,0,20,0"/>
+                                        <CheckBox x:Name="chkSaveLogToFile" Content="保存日志到文件" IsChecked="True"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <TextBlock Text="日志保留天数：" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="txtLogRetentionDays" Width="60" Text="7"/>
+                                        <TextBlock Text="天" Foreground="#999" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 关于 -->
+                            <Border Style="{StaticResource SettingCard}">
+                                <StackPanel>
+                                    <TextBlock Text="关于" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                                    <TextBlock Text="招聘自动化系统 v1.0.0" FontWeight="SemiBold"/>
+                                    <TextBlock Text="基于 .NET 6 + WPF + CefSharp 开发" Foreground="#999" Margin="0,5,0,0"/>
+                                    <TextBlock Text="支持 BOSS直聘、智联招聘、前程无忧、猎聘等主流招聘平台" Foreground="#999" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="保存设置" HorizontalAlignment="Right" Padding="20,8" Background="#3498DB" 
+                                    Foreground="White" BorderThickness="0" Cursor="Hand" Click="BtnSaveSystemSettings_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+
+            <!-- 底部状态栏 -->
+            <Border Grid.Row="2" Background="White" Padding="20,10" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="txtStatus" Text="系统就绪" Foreground="#666" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="运行时长: " Foreground="#999"/>
+                        <TextBlock x:Name="txtRuntime" Text="00:00:00" Foreground="#666"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
